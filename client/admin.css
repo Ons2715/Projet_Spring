@@ -1,0 +1,222 @@
+.admin-main {
+  background: linear-gradient(180deg, #f7faff 0%, #eef4ff 100%);
+}
+
+.admin-layout {
+  display: block;
+}
+/*pour les cards de formation dans la page de choix de formation */
+.admin-toolbar,
+.admin-form-actions,
+.admin-reclamation-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+/*pour les cards de formation dans la page de choix de formation */
+.admin-table-wrap {
+  overflow-x: auto;
+}
+/*pour les cards de formation dans la page de choix de formation */
+.admin-role-filter {
+  max-width: 180px;
+}
+/*pour les cards de formation dans la page de choix de formation */
+.admin-search-input {
+  width: min(280px, 100%);
+}
+/*pour les cards de formation dans la page de choix de formation */
+.admin-toolbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+  /*pour les cards de formation dans la page de choix de formation*/
+.admin-form {
+  display: grid;
+  gap: 16px;
+}
+/*pour les cards de formation dans la page de choix de formation*/
+.admin-form [hidden] {
+  display: none !important;
+}
+/*pour les cards de formation dans la page de choix de formation*/
+.admin-user-modal {
+  max-width: 520px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 30px;
+}
+/*pour les cards de formation dans la page de choix de formation*/
+.admin-profile-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 6px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: var(--surface-low);
+}
+/*pour les cards de formation dans la page de choix de formation*/
+.admin-profile-option {
+  display: grid;
+  gap: 3px;
+  min-height: 68px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--on-surface-muted);
+  font-family: var(--font-display);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.admin-profile-option span {
+  color: var(--on-surface);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.admin-profile-option small {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.admin-profile-option.active {
+  border-color: rgba(255, 177, 0, 0.55);
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-empty {
+  padding: 24px;
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-lg);
+  background: var(--surface-low);
+  color: var(--on-surface-muted);
+  text-align: center;
+}
+
+.admin-user-lists {
+  display: grid;
+  gap: 24px;
+}
+
+.admin-user-section {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-list-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.admin-user-photo {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--primary-light);
+  color: #6f4a00;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.admin-user-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-reclamation-list {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-reclamation-item {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: #fff;
+}
+
+.admin-reclamation-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color: var(--on-surface-muted);
+  font-size: 13px;
+}
+
+.admin-reclamation-user {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-reclamation-user h3 {
+  margin: 0;
+}
+/*pour les cards de formation dans la page de choix de formation*/
+.admin-reclamation-user span {
+  color: var(--on-surface-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-reclamation-reason {
+  color: var(--on-surface);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+/*pour les cards de formation dans la page de choix de formation*/
+.admin-reclamation-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-reclamation-treat-action {
+  justify-self: end;
+}
+/*media pour les cards de formation dans la page de choix de formation*/
+@media (max-width: 1060px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+}
+/*pour les cards de formation dans la page de choix de formation*/
+/*media serve a rendre les elements de la page plus adaptables sur les petits ecrans en les empilant verticalement et en ajustant les largeurs des elements de la toolbar*/
+@media (max-width: 640px) {
+  .admin-toolbar,
+  .admin-form-actions,
+  .admin-reclamation-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-role-filter {
+    max-width: none;
+  }
+
+  .admin-toolbar-actions {
+    justify-content: stretch;
+    width: 100%;
+  }
+}

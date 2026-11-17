@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduCar - Profil Moniteur</title>
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="dashboardClient.css" />
+  <link rel="stylesheet" href="dashboradMoniteur.css" />
+</head>
+<body>
+  <div class="client-shell monitor-shell">
+    <aside class="client-sidebar">
+      <a class="client-brand" href="./index.html">Edu<span>Car</span></a>
+
+      
+
+      <nav class="client-nav">
+        <a class="client-nav-link" href="./dashboradMoniteur.html">Planning</a>
+        <a class="client-nav-link" href="./eleves.html">Liste des candidats</a>
+      </nav>
+
+      <div class="client-sidebar-footer">
+        <a class="client-sidebar-footer-link active" href="./profil_Moniteur.html">Profil</a>
+        <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="monitor-profile-logout-link">Deconnexion</a>
+      </div>
+    </aside>
+
+    <main class="client-main monitor-main">
+      <header class="client-topbar monitor-topbar">
+        <div>
+          <p class="client-kicker">Profil Moniteur</p>
+          <h1 class="h2">Mes coordonnées</h1>
+          <p class="text-muted">Mettez à jour votre identité, votre téléphone et votre adresse depuis votre espace moniteur.</p>
+        </div>
+      </header>
+
+      
+      <section class="card monitor-profile-card">
+        <div class="card-body">
+          <div class="section-header">
+            <div>
+              <p class="client-kicker">Informations</p>
+              <h2 class="h3">Mon profil moniteur</h2>
+            </div>
+          </div>
+          <div class="profile-photo-panel">
+            <div class="profile-photo-preview" id="monitor-profile-photo-preview">
+              <span id="monitor-profile-photo-fallback">MD</span>
+            </div>
+            <div>
+              <p class="client-kicker">Photo de profil</p>
+              <h3 class="h4" id="monitor-profile-name-label">Moniteur EduCar</h3>
+              <span class="badge badge-primary" id="monitor-profile-car-badge">Voiture</span>
+            </div>
+          </div>
+
+          <form class="profile-form" id="monitor-profile-form">
+            <div class="form-group">
+              <label class="form-label" for="monitor-profile-photo-input">Photo de profil</label>
+              <input class="form-input" id="monitor-profile-photo-input" type="file" accept="image/*" />
+            </div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="monitor-profile-firstname">Prenom</label>
+                <input class="form-input" id="monitor-profile-firstname" type="text" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="monitor-profile-lastname">Nom</label>
+                <input class="form-input" id="monitor-profile-lastname" type="text" />
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="monitor-profile-email">Email</label>
+                <input class="form-input" id="monitor-profile-email" type="email" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="monitor-profile-phone">Telephone</label>
+                <input class="form-input" id="monitor-profile-phone" type="tel" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="monitor-profile-address">Adresse</label>
+              <input class="form-input" id="monitor-profile-address" type="text" placeholder="Rue, ville, gouvernorat" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="monitor-profile-car">Voiture</label>
+              <input class="form-input" id="monitor-profile-car" type="text" readonly />
+            </div>
+
+            <div class="profile-form-actions">
+              <button class="btn btn-primary btn-lg" type="submit">Enregistrer les modifications</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    const MONITOR_PROFILE_KEY = "EduCar_monitor_profile";
+    const monitorUser = Auth.get() || {};
+    const monitorPhotoPreview = document.getElementById("monitor-profile-photo-preview");
+
+    function getInitials(firstName = "", lastName = "") {
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "MD";
+    }
+
+    function refreshMonitorPhoto() {
+      if (monitorUser.photo || monitorUser.avatar) {
+        monitorPhotoPreview.innerHTML = `<img src="${monitorUser.photo || monitorUser.avatar}" alt="Photo de profil" />`;
+      } else {
+        monitorPhotoPreview.innerHTML = `<span id="monitor-profile-photo-fallback">${getInitials(monitorUser.firstName || "Mourad", monitorUser.lastName || "Drive")}</span>`;
+      }
+    }
+
+    function splitName(nom = "") {
+      const parts = String(nom).trim().split(/\s+/).filter(Boolean);
+      return {
+        firstName: parts[0] || "",
+        lastName: parts.slice(1).join(" ")
+      };
+    }
+
+    function applyServerProfile(profile) {
+      if (!profile) return;
+      const nameParts = splitName(profile.nom || profile.name || "");
+      monitorUser.firstName = profile.firstName || nameParts.firstName || monitorUser.firstName || "";
+      monitorUser.lastName = profile.lastName || nameParts.lastName || monitorUser.lastName || "";
+      monitorUser.name = profile.nom || profile.name || `${monitorUser.firstName} ${monitorUser.lastName}`.trim();
+      monitorUser.email = profile.email || monitorUser.email || "";
+      monitorUser.phone = profile.telephone || profile.phone || monitorUser.phone || "";
+      monitorUser.address = profile.adresse || profile.address || monitorUser.address || "";
+      monitorUser.photo = profile.photo || monitorUser.photo || "";
+      monitorUser.avatar = profile.photo || monitorUser.avatar || "";
+      monitorUser.formation = profile.formation_nom || monitorUser.formation || "";
+      monitorUser.voiture = profile.voiture || profile.voiture_affectee || monitorUser.voiture || "";
+      monitorUser.idFormation = profile.id_formation || profile.idFormation || monitorUser.idFormation || "";
+      monitorUser.serverRole = profile.role || monitorUser.serverRole || "moniteur";
+      monitorUser.role = monitorUser.role || "monitor";
+      Auth.set(monitorUser);
+    }
+
+    function getMonitorCarLabel() {
+      if (monitorUser.voiture) return monitorUser.voiture;
+
+      const formationId = String(monitorUser.idFormation || "");
+      const formation = String(monitorUser.formation || "").toLowerCase();
+
+      if (formationId === "2" || formation.includes("automatique")) return "Kia Picanto";
+      if (formationId === "1" || formationId === "4" || formation.includes("manuelle") || formation.includes("recyclage")) return "Renault Clio";
+      return "Voiture non renseignee";
+    }
+
+    function syncMonitorProfile() {
+      localStorage.setItem(MONITOR_PROFILE_KEY, JSON.stringify({
+        firstName: monitorUser.firstName || "",
+        lastName: monitorUser.lastName || "",
+        phone: monitorUser.phone || "",
+        email: monitorUser.email || "",
+        voiture: monitorUser.voiture || "",
+        formation: monitorUser.formation || "",
+        idFormation: monitorUser.idFormation || "",
+        photo: monitorUser.photo || monitorUser.avatar || ""
+      }));
+    }
+
+    function refreshMonitorProfileView() {
+      const fullName = `${monitorUser.firstName || ""} ${monitorUser.lastName || ""}`.trim() || monitorUser.name || "Moniteur EduCar";
+      const voiture = getMonitorCarLabel();
+
+      document.getElementById("monitor-profile-name-label").textContent = fullName;
+      document.getElementById("monitor-profile-car-badge").textContent = voiture;
+
+      document.getElementById("monitor-profile-firstname").value = monitorUser.firstName || "";
+      document.getElementById("monitor-profile-lastname").value = monitorUser.lastName || "";
+      document.getElementById("monitor-profile-email").value = monitorUser.email || "";
+      document.getElementById("monitor-profile-phone").value = monitorUser.phone || "";
+      document.getElementById("monitor-profile-address").value = monitorUser.address || "";
+      document.getElementById("monitor-profile-car").value = voiture;
+      refreshMonitorPhoto();
+    }
+
+    async function loadMonitorProfile() {
+      if (!monitorUser.id || !Auth.getToken()) {
+        refreshMonitorProfileView();
+        return;
+      }
+
+      try {
+        const profile = await Api.get(`/users/${monitorUser.id}`);
+        applyServerProfile(profile);
+        syncMonitorProfile();
+      } catch (error) {
+        Toast.error(error.message || "Impossible de charger le profil moniteur.");
+      }
+
+      refreshMonitorProfileView();
+    }
+
+    document.getElementById("monitor-profile-photo-input").addEventListener("change", function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        Toast.error("Veuillez choisir une image valide.");
+        this.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function () {
+        monitorUser.photo = String(reader.result || "");
+        monitorUser.avatar = monitorUser.photo;
+        Auth.set(monitorUser);
+        ProfilePhotos.set(monitorUser.email, monitorUser.photo);
+        syncMonitorProfile();
+        refreshMonitorPhoto();
+        Toast.success("Photo de profil mise a jour.");
+        Api.patch("/users/me/photo", { photo: monitorUser.photo }).catch((error) => {
+          Toast.error(error.message || "Photo gardee localement pour le moment.");
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById("monitor-profile-form").addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const payload = {
+        firstName: document.getElementById("monitor-profile-firstname").value.trim(),
+        lastName: document.getElementById("monitor-profile-lastname").value.trim(),
+        email: document.getElementById("monitor-profile-email").value.trim(),
+        telephone: document.getElementById("monitor-profile-phone").value.trim(),
+        adresse: document.getElementById("monitor-profile-address").value.trim()
+      };
+
+      try {
+        const profile = await Api.patch("/users/me", payload);
+        applyServerProfile(profile);
+        syncMonitorProfile();
+        refreshMonitorProfileView();
+        Toast.success("Profil moniteur mis a jour.");
+      } catch (error) {
+        Toast.error(error.message || "Impossible de mettre a jour le profil.");
+      }
+    });
+
+    document.getElementById("monitor-profile-logout-link").addEventListener("click", function () {
+      Auth.clear();
+    });
+
+    loadMonitorProfile();
+  </script>
+</body>
+</html>

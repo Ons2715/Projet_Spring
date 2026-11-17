@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduCar - Profil</title>
+    <link rel="stylesheet" href="shared.css" />
+    <link rel="stylesheet" href="dashboardClient.css" />
+  </head>
+  <body>
+    <div class="client-shell">
+      <aside class="client-sidebar">
+        <a class="client-brand" href="./index.html">Edu<span>Car</span></a>
+
+   
+        <nav class="client-nav" id="profile-nav"></nav>
+
+        <div class="client-sidebar-footer">
+          <a class="client-sidebar-footer-link active" href="./profil.html">Profil</a>
+          <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="profile-logout-link">Deconnexion</a>
+        </div>
+      </aside>
+
+      <main class="client-main">
+        <header class="client-topbar">
+          <div>
+            <p class="client-kicker">Profil</p>
+            <h1 class="h2" id="profile-title">Mes coordonnees</h1>
+            <p class="text-muted" id="profile-description">Mettez a jour vos informations personnelles a tout moment.</p>
+          </div>
+          <a class="btn btn-outline" id="profile-back-link" href="./dashboardClient.html">Retour</a>
+        </header>
+
+        <section class="card">
+          <div class="card-body">
+            <div class="profile-photo-panel">
+              <div class="profile-photo-preview" id="profile-photo-preview">
+                <span id="profile-photo-fallback">EC</span>
+              </div>
+              <div>
+                <p class="client-kicker" id="profile-space-label">Espace client</p>
+                <h2 class="h3" id="profile-name-label">Candidat EduCar</h2>
+                <span class="badge badge-primary" id="profile-formation-badge">Aucune formation</span>
+              </div>
+            </div>
+            <form class="profile-form" id="profile-form">
+              <div class="form-group">
+                <label class="form-label" for="profile-photo-input">Photo de profil</label>
+                <input class="form-input" id="profile-photo-input" type="file" accept="image/*" />
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="profile-firstname">Prenom</label>
+                  <input class="form-input" id="profile-firstname" type="text" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="profile-lastname">Nom</label>
+                  <input class="form-input" id="profile-lastname" type="text" />
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="profile-email">Email</label>
+                  <input class="form-input" id="profile-email" type="email" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="profile-phone">Telephone</label>
+                  <input class="form-input" id="profile-phone" type="tel" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="profile-address">Adresse</label>
+                <input class="form-input" id="profile-address" type="text" placeholder="Rue, ville, gouvernorat" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="profile-formation">Formation</label>
+                <input class="form-input" id="profile-formation" type="text" readonly />
+              </div>
+
+              <div class="profile-form-actions">
+                <button class="btn btn-primary btn-lg" type="submit">Enregistrer les modifications</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+      const user = Auth.get() || {};
+      const isMonitor = user.role === "monitor";
+      const profilePhotoPreview = document.getElementById("profile-photo-preview");
+      const selectedFormation = sessionStorage.getItem("selectedFormation") || user.formation || "";
+
+      function getInitials(firstName = "", lastName = "") {
+        return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "EC";
+      }
+
+      function refreshProfilePhoto() {
+        if (user.photo || user.avatar) {
+          profilePhotoPreview.innerHTML = `<img src="${user.photo || user.avatar}" alt="Photo de profil" />`;
+        } else {
+          profilePhotoPreview.innerHTML = `<span id="profile-photo-fallback">${getInitials(user.firstName || "Edu", user.lastName || "Car")}</span>`;
+        }
+      }
+
+      function splitName(nom = "") {
+        const parts = String(nom).trim().split(/\s+/).filter(Boolean);
+        return {
+          firstName: parts[0] || "",
+          lastName: parts.slice(1).join(" ")
+        };
+      }
+
+      function applyServerProfile(profile) {
+        if (!profile) return;
+        const nameParts = splitName(profile.nom || profile.name || "");
+        user.firstName = profile.firstName || nameParts.firstName || user.firstName || "";
+        user.lastName = profile.lastName || nameParts.lastName || user.lastName || "";
+        user.name = profile.nom || profile.name || `${user.firstName} ${user.lastName}`.trim();
+        user.email = profile.email || user.email || "";
+        user.phone = profile.telephone || profile.phone || user.phone || "";
+        user.address = profile.adresse || profile.address || user.address || "";
+        user.photo = profile.photo || user.photo || "";
+        user.avatar = profile.photo || user.avatar || "";
+        user.formation = profile.formation_nom || user.formation || "";
+        user.serverRole = profile.role || user.serverRole || "eleve";
+        user.role = user.role || "student";
+        Auth.set(user);
+        if (user.email && (user.photo || user.avatar)) {
+          ProfilePhotos.set(user.email, user.photo || user.avatar);
+        }
+      }
+
+      function refreshProfileView() {
+        document.getElementById("profile-firstname").value = user.firstName || "";
+        document.getElementById("profile-lastname").value = user.lastName || "";
+        document.getElementById("profile-email").value = user.email || "";
+        document.getElementById("profile-phone").value = user.phone || "";
+        document.getElementById("profile-address").value = user.address || "";
+        document.getElementById("profile-formation").value = user.formation || "Aucune formation selectionnee";
+        document.getElementById("profile-name-label").textContent = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || "Candidat EduCar";
+        document.getElementById("profile-formation-badge").textContent = user.formation || "Aucune formation";
+        refreshProfilePhoto();
+      }
+
+      async function loadProfile() {
+        if (selectedFormation) {
+          user.formation = selectedFormation;
+          Auth.set(user);
+        }
+
+        if (!user.id || !Auth.getToken()) {
+          refreshProfileView();
+          return;
+        }
+
+        try {
+          const profile = await Api.get(`/users/${user.id}`);
+          applyServerProfile(profile);
+        } catch (error) {
+          Toast.error(error.message || "Impossible de charger le profil.");
+        }
+
+        refreshProfileView();
+      }
+
+      const nav = document.getElementById("profile-nav");
+      nav.innerHTML = isMonitor
+        ? `
+          <a class="client-nav-link" href="./dashboradMoniteur.html">Planning</a>
+          <a class="client-nav-link" href="./eleves.html">Eleves</a>
+        `
+        : `
+          <a class="client-nav-link" href="./dashboardClient.html">Historique</a>
+          <a class="client-nav-link" href="./Quizz.html">Quizz</a>
+          <a class="client-nav-link" href="./Leçons.html">Leçons</a>
+          <a class="client-nav-link" href="./planning.html">Reservation</a>
+        `;
+
+      document.getElementById("profile-space-label").textContent = isMonitor ? "Espace moniteur" : "Espace client";
+      document.getElementById("profile-title").textContent = isMonitor ? "Mon profil moniteur" : "Mes coordonnees";
+      document.getElementById("profile-description").textContent = isMonitor
+        ? "Consultez et modifiez uniquement vos informations de moniteur."
+        : "Mettez a jour vos informations personnelles a tout moment.";
+      document.getElementById("profile-back-link").href = isMonitor ? "./dashboradMoniteur.html" : "./dashboardClient.html";
+      document.getElementById("profile-back-link").textContent = isMonitor ? "Retour planning" : "Retour";
+
+      document.getElementById("profile-photo-input").addEventListener("change", function () {
+        const file = this.files && this.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          Toast.error("Veuillez choisir une image valide.");
+          this.value = "";
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = async function () {
+          user.photo = String(reader.result || "");
+          user.avatar = user.photo;
+          Auth.set(user);
+          ProfilePhotos.set(user.email, user.photo);
+          refreshProfilePhoto();
+          try {
+            const profile = await Api.patch("/users/me/photo", { photo: user.photo });
+            applyServerProfile(profile);
+            refreshProfileView();
+            Toast.success("Photo de profil mise a jour.");
+          } catch (error) {
+            Toast.error(error.message || "Photo gardee localement pour le moment.");
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById("profile-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const payload = {
+          firstName: document.getElementById("profile-firstname").value.trim(),
+          lastName: document.getElementById("profile-lastname").value.trim(),
+          email: document.getElementById("profile-email").value.trim(),
+          telephone: document.getElementById("profile-phone").value.trim(),
+          adresse: document.getElementById("profile-address").value.trim()
+        };
+
+        try {
+          const profile = await Api.patch("/users/me", payload);
+          applyServerProfile(profile);
+          refreshProfileView();
+          Toast.success(isMonitor ? "Profil moniteur mis a jour." : "Profil mis a jour.");
+        } catch (error) {
+          Toast.error(error.message || "Impossible de mettre a jour le profil.");
+        }
+      });
+
+      document.getElementById("profile-logout-link").addEventListener("click", function () {
+        Auth.clear();
+      });
+
+      loadProfile();
+    </script>
+  </body>
+</html>

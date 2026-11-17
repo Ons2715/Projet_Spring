@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduCar - Dashboard Client</title>
+    <link rel="stylesheet" href="shared.css" />
+    <link rel="stylesheet" href="dashboardClient.css" />
+  </head>
+  <body>
+    <div class="client-shell">
+      <aside class="client-sidebar">
+        <a class="client-brand" href="./index.html">Edu<span>Car</span></a>
+
+        
+
+        <nav class="client-nav">
+          <a class="client-nav-link active" href="./dashboardClient.html">Historique</a>
+          <a class="client-nav-link" href="./Quizz.html">Quizz</a>
+          <a class="client-nav-link" href="./Lecons.html">Leçons</a>
+          <a class="client-nav-link" href="./planning.html">Reservation</a>
+        </nav>
+
+        <!--<div class="client-sidebar-box" id="reservation">
+          <p class="client-sidebar-kicker">Reservation</p>
+          <h3 class="h4">Reserver une seance</h3>
+          <p class="text-muted">
+            Choisissez votre prochaine heure de conduite ou de revision en ligne.
+          </p>
+          <a class="btn btn-primary" href="./planning.html">Reserver maintenant</a>
+        </div><-->
+
+        <div class="client-sidebar-footer">
+          <a class="client-sidebar-footer-link" href="./profil.html">Profil</a>
+          <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="client-logout-link">Deconnexion</a>
+        </div>
+      </aside>
+
+      <main class="client-main">
+        <header class="client-topbar">
+          <div>
+            <p class="client-kicker">Dashboard Client</p>
+            <h1 class="h2">Bienvenue dans votre espace</h1>
+            <p class="text-muted">
+              Retrouvez vos derniers rendez-vous avec la date, l'emplacement et le type de seance.
+            </p>
+          </div>
+        </header>
+
+        <section class="client-summary-grid">
+          <article class="card client-profile client-dashboard-profile">
+            <div class="card-body">
+              <div class="client-profile-top">
+                <div class="client-profile-photo" id="client-profile-photo">
+                  <span id="client-photo-fallback">EC</span>
+                </div>
+                <div class="client-profile-heading">
+                  <div class="client-profile-title-row">
+                    <h2 class="h4" id="client-name-label">Candidat EduCar</h2>
+                    <span class="badge badge-primary" id="client-formation-badge">Aucune formation</span>
+                  </div>
+                  <p class="text-muted" id="client-hours-label">0 / 0 h effectuees</p>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="card" id="client-notifications-card" hidden>
+          <div class="card-body">
+            <div class="section-header">
+              <div>
+                <p class="client-kicker">Notifications</p>
+                <h2 class="h3">Seances annulées</h2>
+              </div>
+              <span class="badge badge-accent" id="client-notification-count">0</span>
+            </div>
+
+            <div class="history-list" id="client-notification-list"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-body">
+            <div class="section-header">
+              <div>
+                <p class="client-kicker">Mes seances</p>
+                <h2 class="h3">Historique récent</h2>
+              </div>
+              <span class="badge badge-primary">Client</span>
+            </div>
+
+            <div class="history-list" id="client-history-list"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="shared.js"></script>
+    <script>
+      /// Dashboard client script
+      const BOOKINGS_KEY = "EduCar_client_bookings";
+      const user = Auth.get();
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+// We use initials as fallback when the user doesn't have a profile photo. We try to get them from first and last name, but if those are not available, we also try to extract them from the full name or use "EC" as a default fallback.
+      function getInitials(firstName = "", lastName = "") {
+        return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "EC";
+      }
+// In some cases, we might only have a full name without clear separation of first and last name, so we try to extract initials from the full name as well.
+      function getInitialsFromName(name = "") {
+        const parts = String(name).trim().split(/\s+/).filter(Boolean);
+        return `${parts[0]?.charAt(0) || ""}${parts[1]?.charAt(0) || ""}`.toUpperCase() || "EC";
+      }
+// For users without an API session, we store bookings in local storage. This function retrieves those bookings and handles any parsing errors gracefully.
+      function getStoredBookings() {
+        try {
+          return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]");
+        } catch {
+          return [];
+        }
+      }
+// This function checks if the user has an active API session, which allows us to determine whether to fetch bookings from the server or rely on local storage. We also check the user's role to ensure they are a client/student.
+      function hasApiSession() {
+        return Boolean(user && Auth.getToken() && (user.role === "eleve" || user.role === "student" || user.serverRole === "eleve"));
+      }
+
+      function getMapsUrlFromPlace(place, mapsUrl) {
+        if (mapsUrl) return mapsUrl;
+        const value = String(place || "").trim();
+        if (!value) return "https://www.google.com/maps/search/?api=1&query=EduCar%20Tunis";
+        if (value.startsWith("http")) return value;
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`;
+      }
+
+      function toHistoryBooking(raw) {
+        const date = raw.date || (raw.date_lecon ? String(raw.date_lecon).slice(0, 10) : "");
+        const time = raw.time || (raw.date_lecon ? String(raw.date_lecon).slice(11, 16) : "");
+        const durationMinutes = Number(raw.duree_minutes ?? raw.dureeMinutes ?? 60);
+        const duration = durationMinutes % 60 === 0 ? `${durationMinutes / 60}h` : `${durationMinutes} min`;
+        const place = raw.adresse_depart ?? raw.adresseDepart ?? raw.place ?? "";
+
+        return {
+          serverId: raw.id ?? raw.serverId ?? null,
+          date,
+          time,
+          duration,
+          typeLabel: raw.typeLabel || (durationMinutes >= 120 ? "2 heures" : "1 heure"),
+          place,
+          mapsUrl: getMapsUrlFromPlace(place, raw.mapsUrl),
+          note: raw.notes_moniteur ?? raw.note ?? ""
+        };
+      }
+
+      function normalizeMonthLabel(date) {
+        const label = date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" }).replace(".", "");
+        return label ? label.charAt(0).toUpperCase() + label.slice(1) : label;
+      }
+
+      function parseBookingDateTime(booking) {
+        const time = String(booking.time || "00:00");
+        return new Date(`${booking.date}T${time}:00`);
+      }
+
+      function getUserBookings(bookings, userProfile) {
+        if (!userProfile) return bookings;
+        const userId = userProfile.id ?? userProfile.userId ?? "";
+        const email = String(userProfile.email || "").trim();
+        const phone = String(userProfile.phone || userProfile.telephone || "").trim();
+        const firstName = String(userProfile.firstName || "").trim();
+        const lastName = String(userProfile.lastName || "").trim();
+
+        return bookings.filter((booking) => {
+          if (userId && String(booking.studentId || "") === String(userId)) return true;
+          if (email && String(booking.studentEmail || "").trim() === email) return true;
+          if (phone && String(booking.studentPhone || "").trim() === phone) return true;
+          if (firstName && lastName) {
+            return (
+              String(booking.studentFirstName || "").trim() === firstName &&
+              String(booking.studentLastName || "").trim() === lastName
+            );
+          }
+          return false;
+        });
+      }
+
+      async function renderHistory() {
+        const list = document.getElementById("client-history-list");
+        if (!list) return;
+
+        const now = new Date();
+        let bookings = [];
+
+        if (hasApiSession()) {
+          try {
+            const rows = await Api.get("/bookings/me");
+            renderCancellationNotifications(rows);
+            bookings = Array.isArray(rows)
+              ? rows.filter((row) => row.statut !== "annulee").map(toHistoryBooking)
+              : [];
+          } catch (error) {
+            Toast.error(error.message || "Impossible de charger l'historique.");
+            bookings = [];
+          }
+        } else {
+          bookings = getUserBookings(getStoredBookings(), user);
+        }
+
+        bookings = bookings
+          .slice()
+          .sort((a, b) => parseBookingDateTime(b) - parseBookingDateTime(a))
+          .slice(0, 10);
+
+        if (!bookings.length) {
+          list.innerHTML = `<div class="monitor-empty-state">Aucune seance pour le moment.</div>`;
+          return;
+        }
+
+        list.innerHTML = bookings.map((booking) => {
+          const dt = parseBookingDateTime(booking);
+          const day = String(dt.getDate()).padStart(2, "0");
+          const monthLabel = normalizeMonthLabel(dt);
+          const badgeClass = dt < now ? "badge-success" : "badge-primary";
+          const badgeLabel = dt < now ? "Terminee" : "A venir";
+          return `
+            <article class="history-item">
+              <div class="history-date">
+                <span>${day}</span>
+                <small>${escapeHtml(monthLabel)}</small>
+              </div>
+              <div class="history-content">
+                <h3>${escapeHtml(booking.typeLabel || "Seance")}</h3>
+                <p>Emplacement : ${escapeHtml(booking.place || "Non renseigne")}</p>
+              </div>
+              <span class="badge ${badgeClass}">${badgeLabel}</span>
+            </article>`;
+        }).join("");
+      }
+// This function renders notifications for any cancelled bookings. If the user has an API session, we check for any bookings with a status of "annulee" and display them in a notifications section. If there are no cancelled bookings, the notifications section is hidden.
+      function renderCancellationNotifications(rows) {
+        const card = document.getElementById("client-notifications-card");
+        const list = document.getElementById("client-notification-list");
+        const count = document.getElementById("client-notification-count");
+        if (!card || !list || !count) return;
+
+        const cancelled = Array.isArray(rows)
+          ? rows.filter((row) => row.statut === "annulee").map(toHistoryBooking)
+          : [];
+
+        count.textContent = String(cancelled.length);
+        card.hidden = cancelled.length === 0;
+
+        if (!cancelled.length) {
+          list.innerHTML = "";
+          return;
+        }
+
+        list.innerHTML = cancelled
+          .slice()
+          .sort((a, b) => parseBookingDateTime(b) - parseBookingDateTime(a))
+          .slice(0, 5)
+          .map((booking) => {
+            const dt = parseBookingDateTime(booking);
+            const day = String(dt.getDate()).padStart(2, "0");
+            const monthLabel = normalizeMonthLabel(dt);
+            return `
+              <article class="history-item">
+                <div class="history-date">
+                  <span>${day}</span>
+                  <small>${escapeHtml(monthLabel)}</small>
+                </div>
+                <div class="history-content">
+                  <h3>${escapeHtml(booking.typeLabel || "Seance")} annulée</h3>
+                  <p>Votre moniteur a annule cette seance. Vous pouvez reserver un nouveau creneau.</p>
+                </div>
+                <span class="badge badge-accent">Annulee</span>
+              </article>`;
+          }).join("");
+      }
+
+      function renderClientSummary(profile) {
+        const currentUser = { ...(user || {}), ...(profile || {}) };
+        const fullName = currentUser.nom || currentUser.name || `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim();
+        const formation = currentUser.formation_nom || currentUser.formation || "Aucune formation";
+        const done = currentUser.heures_effectuees ?? currentUser.heuresEffectuees ?? 0;
+        const total = currentUser.heures_totales ?? currentUser.heuresTotales ?? 0;
+
+        document.getElementById("client-name-label").textContent = fullName || "Candidat EduCar";
+        document.getElementById("client-photo-fallback").textContent = currentUser.firstName || currentUser.lastName
+          ? getInitials(currentUser.firstName, currentUser.lastName)
+          : getInitialsFromName(fullName);
+        document.getElementById("client-formation-badge").textContent = formation;
+        document.getElementById("client-hours-label").textContent = `${done} / ${total} h effectuees`;
+
+        const photo = currentUser.photo || currentUser.avatar || (user && (user.photo || user.avatar));
+        if (photo) {
+          document.getElementById("client-profile-photo").innerHTML = `<img src="${escapeHtml(photo)}" alt="Photo de profil" />`;
+        }
+      }
+// We load the user's profile from the API to get the most up-to-date information for the dashboard summary. If the API call fails, we still render the summary with whatever information we have from the local session.
+      async function loadClientSummary() {
+        if (!user || !user.id) {
+          renderClientSummary(null);
+          return;
+        }
+
+        try {
+          const profile = await Api.get(`/users/${user.id}`);
+          renderClientSummary(profile);
+        } catch {
+          renderClientSummary(null);
+        }
+      }
+
+      loadClientSummary();
+
+      document.getElementById("client-logout-link").addEventListener("click", function () {
+        Auth.clear();
+      });
+
+      renderHistory();
+
+      let storageRefreshTimer = null;
+      window.addEventListener("storage", function (event) {
+        if (event.key !== BOOKINGS_KEY) return;
+        if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
+        storageRefreshTimer = setTimeout(() => {
+          storageRefreshTimer = null;
+          renderHistory();
+        }, 50);
+      });
+    </script>
+  </body>
+</html>

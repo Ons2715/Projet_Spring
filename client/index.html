@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCar - Driving School</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="./index.css" rel="stylesheet"/>
+  <script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background: "#f8f9ff",
+            surface: "#f8f9ff",
+            "surface-container": "#e5eeff",
+            "surface-container-low": "#eff4ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-high": "#dce9ff",
+            "surface-container-highest": "#d3e4fe",
+            "primary-container": "#ffb100",
+            "on-primary-container": "#6a4700",
+            "on-background": "#0b1c30",
+            "on-surface": "#0b1c30",
+            tertiary: "#545f73",
+            secondary: "#466800",
+            "secondary-container": "#b7f64a",
+            "on-secondary-container": "#4b6f00"
+          },
+          spacing: {
+            xs: "4px",
+            sm: "12px",
+            md: "24px",
+            lg: "48px",
+            xl: "80px",
+            gutter: "24px"
+          },
+          fontFamily: {
+            sans: ["Lexend", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="flex min-h-screen flex-col bg-background text-on-background">
+  <nav class="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 shadow-sm backdrop-blur-md">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <a class="text-2xl font-black tracking-tight text-slate-900" href="./index.html">Edu<span class="text-amber-400">Car</span></a>
+
+      <div class="hidden items-center gap-8 md:flex">
+        <a class="border-b-2 border-amber-500 pb-1 font-bold text-amber-500 transition-transform duration-150 active:scale-95" href="./index.html">Accueil</a>
+        <a class="px-1 py-1 font-bold text-slate-700 transition-colors duration-200 hover:text-amber-500" href="#formations">Formations</a>
+        <a class="px-1 py-1 font-bold text-slate-700 transition-colors duration-200 hover:text-amber-500" href="#apropos">A propos</a>
+        <a class="px-1 py-1 font-bold text-slate-700 transition-colors duration-200 hover:text-amber-500" href="#contact">Contact</a>
+      </div>
+
+      <div class="hidden items-center gap-4 md:flex">
+        <a class="px-4 py-2 text-sm font-semibold text-on-surface transition-colors duration-200 hover:text-amber-600" href="./login.html">Connexion</a>
+        <a class="rounded-lg bg-primary-container px-4 py-2 text-sm font-bold text-slate-900 transition-colors duration-200 hover:bg-amber-400" href="./login.html#register">Creer un compte</a>
+      </div>
+
+      <button class="text-on-surface md:hidden" type="button" aria-label="Ouvrir le menu">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="flex-1">
+    <section class="relative flex h-[600px] w-full items-center justify-center overflow-hidden">
+      <div class="absolute inset-0">
+        <img
+          alt="Modern city road from driver's perspective at dusk"
+          class="h-full w-full object-cover object-center"
+          src="mano.png"
+        />
+        
+        <div class="absolute inset-0 bg-slate-900/70"></div>
+      </div>
+
+      <div class="hero-driving-scene" aria-hidden="true">
+        <div class="driving-school-sign">
+  <img src="stop.png" alt="Stop" class="stop-sign-img" />
+</div>
+
+        <div class="hero-cars">
+          <div class="hero-car-wrap hero-car-wrap-clio">
+            <img class="hero-car hero-car-clio" src="educar1.png" alt="" />
+          </div>
+
+          <div class="hero-car-wrap hero-car-wrap-picanto">
+            <img class="hero-car hero-car-picanto" src="educar2.png" alt="" />
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-copy relative z-10 mx-auto flex w-full max-w-7xl items-center px-6">
+        <div class="max-w-2xl text-white">
+          <h1 class="mb-6 text-4xl font-bold leading-tight md:text-5xl">
+            L'Excellence de la <span class="text-primary-container">Conduite Urbaine</span>
+          </h1>
+          <p class="mb-8 text-lg text-slate-200">
+            Avec EduCar maitrisez le code de la route, reservez vos heures de conduite en ligne et suivez votre progression avec une école nouvelle génération.
+          </p>
+          <a class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-8 py-4 font-bold text-slate-900 shadow-lg transition-all duration-150 hover:bg-amber-400 active:scale-95" href="./login.html#register">
+            Commencer maintenant
+            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-surface-container-lowest py-xl" id="formations">
+      <div class="mx-auto max-w-7xl px-6">
+        <div class="mb-12 text-center">
+          <h2 class="text-3xl font-bold uppercase tracking-wide text-slate-800">Nos Formations</h2>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <article class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md">
+            <div class="formation-corner absolute bottom-0 right-0 h-6 w-6 rounded-tl-lg bg-slate-300"></div>
+            <span class="material-symbols-outlined material-symbol-filled text-6xl text-slate-700 transition-colors group-hover:text-primary-container">menu_book</span>
+            <h3 class="text-center text-sm font-bold uppercase text-slate-800 md:text-base">Code</h3>
+            <div class="formation-pack">
+              <p class="formation-pack-title">Formule Theorie</p>
+              <ul class="formation-pack-list">
+                <li><span>Prix formation</span><strong>300 DT</strong></li>
+                <li><span>Volume inclus</span><strong>10h de code</strong></li>
+                <li><span>Bonus</span><strong>1h conduite gratuite</strong></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md">
+            <div class="formation-corner absolute bottom-0 right-0 h-6 w-6 rounded-tl-lg bg-slate-300"></div>
+            <span class="material-symbols-outlined material-symbol-filled text-6xl text-slate-700 transition-colors group-hover:text-primary-container">directions_car</span>
+            <h3 class="text-center text-sm font-bold uppercase text-slate-800 md:text-base">Permis B Boite Manuelle</h3>
+            <div class="formation-pack">
+              <p class="formation-pack-title">Formule Complete</p>
+              <ul class="formation-pack-list">
+                <li><span>Prix formation</span><strong>1 200 DT</strong></li>
+                <li><span>Volume inclus</span><strong>20h de conduite</strong></li>
+                <li><span>Ideal pour</span><strong>Apprendre la boite manuelle</strong></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md">
+            <div class="formation-corner absolute bottom-0 right-0 h-6 w-6 rounded-tl-lg bg-slate-300"></div>
+            <span class="material-symbols-outlined material-symbol-filled text-6xl text-slate-700 transition-colors group-hover:text-primary-container">auto_transmission</span>
+            <h3 class="text-center text-sm font-bold uppercase text-slate-800 md:text-base">Permis B Automatique</h3>
+            <div class="formation-pack">
+              <p class="formation-pack-title">Formule Confort</p>
+              <ul class="formation-pack-list">
+                <li><span>Prix formation</span><strong>1 100 DT</strong></li>
+                <li><span>Volume inclus</span><strong>20h de conduite</strong></li>
+                <li><span>Ideal pour</span><strong>Une progression plus fluide</strong></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md sm:col-span-2 lg:col-span-3">
+            <div class="formation-corner absolute bottom-0 right-0 h-6 w-6 rounded-tl-lg bg-slate-300"></div>
+            <span class="material-symbols-outlined material-symbol-filled text-6xl text-slate-700 transition-colors group-hover:text-primary-container">restart_alt</span>
+            <h3 class="text-center text-sm font-bold uppercase text-slate-800 md:text-base">Recyclage</h3>
+            <div class="formation-pack">
+              <p class="formation-pack-title">Remise a Niveau</p>
+              <ul class="formation-pack-list">
+                <li><span>Prix formation</span><strong>250 DT</strong></li>
+                <li><span>Volume inclus</span><strong>7h de conduite</strong></li>
+                <li><span>Ideal pour</span><strong>Reprendre confiance au volant</strong></li>
+              </ul>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-surface-container-low py-xl">
+      <div class="mx-auto max-w-7xl px-6">
+        <div class="mb-xl text-center">
+          <h2 class="mb-xs text-3xl font-bold text-on-surface">Votre parcours vers le permis</h2>
+          <p class="text-tertiary">Une methode claire, sans surprise.</p>
+        </div>
+
+        <div class="relative">
+          <div class="absolute left-0 top-1/2 z-0 hidden h-[2px] w-full -translate-y-1/2 bg-surface-container-highest md:block"></div>
+
+          <div class="relative z-10 grid grid-cols-1 gap-md md:grid-cols-5">
+            <div class="relative rounded-lg border border-surface-container bg-surface-container-lowest p-md text-center shadow-[0_4px_24px_rgba(30,41,59,0.04)]">
+              <div class="absolute left-1/2 top-0 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-surface-container-lowest bg-primary-container font-bold text-slate-900 shadow-sm">1</div>
+              <div class="mb-xs mt-sm text-tertiary"><span class="material-symbols-outlined text-[32px]">app_registration</span></div>
+              <h3 class="text-base font-semibold text-on-surface">Inscription</h3>
+            </div>
+
+            <div class="relative rounded-lg border border-surface-container bg-surface-container-lowest p-md text-center shadow-[0_4px_24px_rgba(30,41,59,0.04)]">
+              <div class="absolute left-1/2 top-0 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-surface-container-lowest bg-surface-container-high font-bold text-tertiary shadow-sm">2</div>
+              <div class="mb-xs mt-sm text-tertiary"><span class="material-symbols-outlined text-[32px]">credit_card</span></div>
+              <h3 class="text-base font-semibold text-on-surface">Paiement</h3>
+            </div>
+
+            <div class="relative rounded-lg border border-surface-container bg-surface-container-lowest p-md text-center shadow-[0_4px_24px_rgba(30,41,59,0.04)]">
+              <div class="absolute left-1/2 top-0 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-surface-container-lowest bg-surface-container-high font-bold text-tertiary shadow-sm">3</div>
+              <div class="mb-xs mt-sm text-tertiary"><span class="material-symbols-outlined text-[32px]">menu_book</span></div>
+              <h3 class="text-base font-semibold text-on-surface">Acces aux cours</h3>
+            </div>
+
+            <div class="relative rounded-lg border border-surface-container bg-surface-container-lowest p-md text-center shadow-[0_4px_24px_rgba(30,41,59,0.04)]">
+              <div class="absolute left-1/2 top-0 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-surface-container-lowest bg-surface-container-high font-bold text-tertiary shadow-sm">4</div>
+              <div class="mb-xs mt-sm text-tertiary"><span class="material-symbols-outlined text-[32px]">calendar_month</span></div>
+              <h3 class="text-base font-semibold text-on-surface">Reservation</h3>
+            </div>
+
+            <div class="relative rounded-lg border border-surface-container bg-surface-container-lowest p-md text-center shadow-[0_4px_24px_rgba(30,41,59,0.04)]">
+              <div class="absolute left-1/2 top-0 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-surface-container-lowest bg-secondary-container font-bold text-on-secondary-container shadow-sm">5</div>
+              <div class="mb-xs mt-sm text-secondary"><span class="material-symbols-outlined material-symbol-filled text-[32px]">workspace_premium</span></div>
+              <h3 class="text-base font-semibold text-on-surface">Examen</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white py-xl" id="apropos">
+      <div class="mx-auto w-full max-w-[1500px] px-6 lg:px-12">
+        <div class="max-w-[1100px]">
+          <p class="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-amber-500">A propos de nous</p>
+          <h2 class="mb-6 text-3xl font-bold text-slate-900 md:text-4xl">La fondation d'EduCar</h2>
+          <p class="text-lg leading-8 text-slate-600 lg:text-xl">
+            EduCar a été  avec une idée simple : moderniser l'apprentissage de la conduite en reunissant la rigueur d'une auto-école de confiance et la souplesse des outils numeriques. Née de la volonte d'accompagner chaque candidat avec plus de clarte, plus de disponibilite et un meilleur suivi, EduCar propose une experience ou les cours, les reservations et la progression de l'élève restent accessibles, humaines et faciles a suivre.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-slate-800 py-xl text-surface-container-lowest">
+      <div class="mx-auto max-w-4xl px-6 text-center">
+        <h2 class="mb-6 text-3xl font-bold md:text-4xl">Pret a prendre le volant ?</h2>
+        <p class="mb-8 text-lg text-slate-300">Rejoignez des milliers de conducteurs formes avec succes par EduCar.</p>
+        <a class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-8 py-4 font-bold text-slate-900 shadow-lg transition-all duration-150 hover:bg-amber-400 active:scale-95" href="./login.html#register">
+          Creer mon compte
+          <span class="material-symbols-outlined">how_to_reg</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="w-full border-t border-slate-800 bg-slate-950 text-sm" id="contact">
+    <div class="mx-auto grid max-w-7xl gap-10 px-6 py-12 md:grid-cols-[1.2fr_1fr_1fr]">
+      <div>
+        <div class="mb-4 text-2xl font-black text-white">Edu<span class="text-amber-400">Car</span></div>
+        <p class="max-w-md leading-7 text-slate-400">
+          Auto-ecole moderne pour apprendre, reserver et suivre votre progression avec un accompagnement clair.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="mb-4 font-bold uppercase tracking-wide text-white">Contact</h3>
+        <div class="grid gap-3 text-slate-400">
+          <p>Email : contact@educar.tn</p>
+          <p>Telephone : +216 20 000 000</p>
+          <p>Adresse : Centre Urbain Nord, Tunis</p>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="mb-4 font-bold uppercase tracking-wide text-white">Liens</h3>
+        <div class="grid gap-3">
+          <a class="text-slate-400 transition-colors duration-200 hover:text-amber-500" href="#formations">Formations</a>
+          <a class="text-slate-400 transition-colors duration-200 hover:text-amber-500" href="#apropos">A propos</a>
+          <a class="text-slate-400 transition-colors duration-200 hover:text-amber-500" href="./login.html#register">Creer un compte</a>
+          <a class="text-slate-400 transition-colors duration-200 hover:text-amber-500" href="./login.html">Connexion</a>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-slate-800 px-6 py-5 text-center text-xs text-slate-500">
+      � 2026 EduCar. Tous droits reserves.
+    </div>
+  </footer>
+</body>
+</html>

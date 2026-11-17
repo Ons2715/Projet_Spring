@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduCar - Paiement</title>
+    <link rel="stylesheet" href="wallet.css" />
+  </head>
+  <body>
+    <div class="rm-overlay" id="overlay">
+      <div class="rm-modal" id="modal">
+        <div class="rm-header">
+          <div class="rm-header-left">
+            <div class="rm-header-icon">CB</div>
+            <div>
+              <h2>Paiement de la formation</h2>
+              <p id="header-subtitle">Choisissez une methode</p>
+            </div>
+          </div>
+          <button class="rm-close" onclick="closeModal()">x</button>
+        </div>
+
+        <div class="rm-progress" id="progress-bar">
+          <div class="rm-progress-step" id="step-dot-1">
+            <div class="rm-progress-dot">1</div>
+            <span>Methode</span>
+            <div class="rm-progress-line" id="line-1"></div>
+          </div>
+          <div class="rm-progress-step" id="step-dot-2">
+            <div class="rm-progress-dot">2</div>
+            <span>Recapitulatif</span>
+            <div class="rm-progress-line" id="line-2"></div>
+          </div>
+          <div class="rm-progress-step" id="step-dot-3">
+            <div class="rm-progress-dot">3</div>
+            <span>Paiement</span>
+          </div>
+        </div>
+
+        <div class="rm-body" id="step-1">
+          <p class="rm-subtitle">Selectionnez votre methode de paiement</p>
+          <div class="rm-methods-grid">
+            <button class="rm-method-card" style="--method-color:#2a52be" onclick="selectMethod('Carte bancaire','Visa / Mastercard / CIB')">
+              <div class="rm-method-info"><strong>Carte bancaire</strong><small>Visa / Mastercard / CIB</small></div>
+              <div class="rm-method-arrow">-&gt;</div>
+            </button>
+            <button class="rm-method-card" style="--method-color:#f59e0b" onclick="selectMethod('Paiement mobile','Floosa / D17')">
+              <div class="rm-method-info"><strong>Paiement mobile</strong><small>Floosa / D17</small></div>
+              <div class="rm-method-arrow">-&gt;</div>
+            </button>
+            <button class="rm-method-card" style="--method-color:#10b981" onclick="selectMethod('Virement bancaire','Virement instantane')">
+              <div class="rm-method-info"><strong>Virement bancaire</strong><small>Virement instantane</small></div>
+              <div class="rm-method-arrow">-&gt;</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="rm-body" id="step-2" style="display:none">
+          <p class="rm-subtitle" id="step2-subtitle">Verifiez votre paiement</p>
+          <div class="rm-amount-summary" id="amount-summary">
+            <div class="rm-amount-row"><span>Methode</span><strong id="sum-method"></strong></div>
+            <div class="rm-amount-row"><span>Formation</span><strong id="sum-formation"></strong></div>
+            <div class="rm-amount-row rm-amount-total"><span>Total a payer</span><strong id="sum-total"></strong></div>
+          </div>
+          <div class="rm-actions">
+            <button class="rm-btn-ghost" onclick="goStep(1)">&lt;- Retour</button>
+            <button class="rm-btn-primary" id="btn-step2" onclick="goStep(3)">Continuer</button>
+          </div>
+        </div>
+
+        <div class="rm-body" id="step-3" style="display:none">
+          <div class="rm-card-preview" id="card-preview" style="--card-color:#c41e3a">
+            <div class="rm-card-front">
+              <div class="rm-card-top">
+                <div class="rm-card-chip"><div></div><div></div><div></div><div></div></div>
+              </div>
+              <div class="rm-card-number" id="card-num-disp">**** **** **** ****</div>
+              <div class="rm-card-bottom">
+                <div>
+                  <div class="rm-card-label">Titulaire</div>
+                  <div class="rm-card-val" id="card-name-disp">VOTRE NOM</div>
+                </div>
+                <div>
+                  <div class="rm-card-label">Expiration</div>
+                  <div class="rm-card-val" id="card-exp-disp">MM/AA</div>
+                </div>
+              </div>
+            </div>
+            <div class="rm-card-back">
+              <div class="rm-card-stripe"></div>
+              <div class="rm-card-cvv-row">
+                <div class="rm-card-cvv-label">CVV</div>
+                <div class="rm-card-cvv-val" id="card-cvv-disp">***</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rm-input-group">
+            <label>Numero de carte</label>
+            <input type="text" id="card-num" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" autocomplete="off" oninput="fmtCardNum()" onchange="updateCard()" />
+          </div>
+          <div class="rm-input-group">
+            <label>Nom du titulaire</label>
+            <input type="text" id="card-name" placeholder="PRENOM NOM" autocomplete="off" autocapitalize="characters" oninput="updateCard()" />
+          </div>
+          <div class="rm-row-2">
+            <div class="rm-input-group">
+              <label>Expiration</label>
+              <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5" inputmode="numeric" autocomplete="off" oninput="fmtExpiry()" onchange="updateCard()" />
+            </div>
+            <div class="rm-input-group">
+              <label>CVV</label>
+              <input type="password" id="card-cvv" placeholder="***" maxlength="3" inputmode="numeric" autocomplete="new-password" onfocus="flipCard(true)" onblur="flipCard(false)" oninput="updateCard()" />
+            </div>
+          </div>
+          <div class="rm-actions">
+            <button class="rm-btn-ghost" onclick="goStep(2)">&lt;- Retour</button>
+            <button class="rm-btn-primary" id="btn-confirm" onclick="handleConfirmPayment()" disabled>Confirmer</button>
+          </div>
+        </div>
+
+        <div id="step-4" style="display:none">
+          <div class="rm-success">
+            <div class="rm-success-circle"><div class="rm-success-check">OK</div></div>
+            <h3>Paiement termine avec succes</h3>
+            <p>Votre paiement de <strong id="success-amount"></strong> a ete valide.</p>
+            <div class="rm-success-method" id="success-method"></div>
+            <button class="rm-btn-primary rm-btn-full" onclick="goClientSpace()">Aller vers l'espace client</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="wallet.js"></script>
+  </body>
+</html>
