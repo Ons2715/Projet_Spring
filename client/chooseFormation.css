@@ -160,10 +160,13 @@
 
 .plan-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
   align-items: stretch;
 }
+
+.plan-notice-list li { line-height: 1.55; }
+.confirm-summary-total strong { color: var(--primary-dark); }
 
 .plan-card {
   position: relative;

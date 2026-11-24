@@ -194,6 +194,9 @@
         padding: 1rem;
         margin-bottom: 1rem;
       }
+      .rm-amount-summary p { margin: .55rem 0 0; color: #475569; font-size: .86rem; line-height: 1.5; }
+      .rm-payment-demo-note { padding: .7rem .85rem; margin: 0 0 1rem; border-radius: .65rem; background: #fff7e6; color: #7a5000; font-size: .82rem; line-height: 1.45; }
+      .rm-payment-error { min-height: 1.2rem; margin: .5rem 0 0; color: #b42318; font-size: .85rem; }
       .rm-amount-row {
         display: flex; justify-content: space-between;
         font-size: .85rem; color: #475569;

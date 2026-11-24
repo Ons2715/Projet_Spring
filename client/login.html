@@ -304,7 +304,14 @@
           document.getElementById("photo-upload-box").classList.remove("has-photo");
           return;
         }
-// Validate file size (max 5MB)
+        if (file.size > 1_400_000) {
+          selectedProfilePhoto = "";
+          this.value = "";
+          setPhotoError("La photo doit faire moins de 1,4 Mo.");
+          document.getElementById("photo-upload-box").classList.remove("has-photo");
+          return;
+        }
+// Validate file size before converting to base64 so it fits the profile limit.
         const reader = new FileReader();
         reader.onload = function () {
           selectedProfilePhoto = String(reader.result || "");
@@ -328,23 +335,26 @@
         }
 
         const button = document.getElementById("photo-continue-btn");
-        const user = pendingRegisteredUser || Auth.get() || {};
-        user.photo = selectedProfilePhoto;
-        user.avatar = selectedProfilePhoto;
-        Auth.set(user);
-        ProfilePhotos.set(user.email, selectedProfilePhoto);
-
         button.disabled = true;
         try {
-          const updatedProfile = await Api.patch("/users/me/photo", { photo: selectedProfilePhoto });
-          user.photo = updatedProfile.photo || selectedProfilePhoto;
-          user.avatar = updatedProfile.photo || selectedProfilePhoto;
-          Auth.set(user);
-          Toast.success("Photo ajoutee avec succes.");
+          const pending = JSON.parse(sessionStorage.getItem("pendingRegistration") || "null");
+          if (pending) {
+            pending.photo = selectedProfilePhoto;
+            sessionStorage.setItem("pendingRegistration", JSON.stringify(pending));
+          } else {
+            const user = Auth.get() || {};
+            user.photo = selectedProfilePhoto;
+            user.avatar = selectedProfilePhoto;
+            Auth.set(user);
+            ProfilePhotos.set(user.email, selectedProfilePhoto);
+            const updatedProfile = await Api.patch("/users/me/photo", { photo: selectedProfilePhoto });
+            user.photo = updatedProfile.photo || selectedProfilePhoto;
+            user.avatar = updatedProfile.photo || selectedProfilePhoto;
+            Auth.set(user);
+          }
           location.href = "chooseFormation.html";
         } catch (error) {
-          Toast.error(error.message || "Photo gardee localement pour le moment.");
-          location.href = "chooseFormation.html";
+          setPhotoError(error.message || "Impossible de preparer la photo.");
         } finally {
           button.disabled = false;
         }
@@ -457,33 +467,17 @@
           return;
         }
 
-        txt.innerHTML = '<span class="loading-spinner"></span>';
-        btn.disabled = true;
-
-        try {
-          const data = await Api.post("/auth/register", {
-            firstName: fields.firstName,
-            lastName: fields.lastName,
-            email: fields.email,
-            telephone: fields.phone,
-            adresse: fields.address,
-            password: fields.password,
-            role: "eleve"
-          });
-          Auth.set(data.user);
-          Auth.setToken(data.token);
-          Toast.success("Compte créé avec succès !");
-          pendingRegisteredUser = data.user;
-          txt.textContent = "Creer mon compte";
-          btn.disabled = false;
-          showPhotoStep();
-        } catch (err) {
-          setRegisterError(err.message || "Erreur lors de l'inscription.");
-          txt.textContent = "Créer mon compte";
-          btn.disabled = false;
-        }
+        sessionStorage.setItem("pendingRegistration", JSON.stringify({
+          firstName: fields.firstName,
+          lastName: fields.lastName,
+          email: fields.email,
+          telephone: fields.phone,
+          adresse: fields.address,
+          password: fields.password
+        }));
+        pendingRegisteredUser = { email: fields.email };
+        showPhotoStep();
       }
     </script>
   </body>
 </html>
-

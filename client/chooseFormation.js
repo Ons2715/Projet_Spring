@@ -1,124 +1,97 @@
-const formationCards = document.querySelectorAll(".plan-card");
-const selectedPrice = document.getElementById("selected-price");
+const formationCards = [...document.querySelectorAll(".plan-card")];
 const selectedFormationLabel = document.getElementById("selected-formation-label");
-const selectedTotal = document.getElementById("selected-total");
 const walletModalOverlay = document.getElementById("wallet-modal-overlay");
 const walletModalFrame = document.getElementById("wallet-modal-frame");
-//pour les cards de formation dans la page de choix de formation
-function normalizePrice(rawValue) {
-  return Number(String(rawValue).replace(/[^\d]/g, "")) || 0;
-}
-//pour les cards de formation dans la page de choix de formation
-function formatCurrency(value) {
-  return `${Number(value).toLocaleString("fr-TN")} TND`;
-}
-//pour les cards de formation dans la page de choix de formation
-function getRecyclageBoite(card) {
-  if (!card || card.dataset.formationId !== "4") return "";
-  return document.querySelector('input[name="recyclage-boite"]:checked')?.value || "automatique";
-}
-//pour les cards de formation dans la page de choix de formation
-function getRecyclageBoiteLabel() {
-  return getRecyclageBoite(document.querySelector(".plan-card.selected")) === "manuelle"
-    ? "boite manuelle"
-    : "boite automatique";
-}
-//pour les cards de formation dans la page de choix de formation
-function updateSummary(card) {
-  const basePrice = normalizePrice(card.dataset.price);
-  const recyclageSuffix = getRecyclageBoite(card) ? ` - ${getRecyclageBoiteLabel()}` : "";
+const continueButton = document.querySelector(".confirm-button");
+let formationRecords = [];
 
-  selectedFormationLabel.textContent = `${card.dataset.formation}${recyclageSuffix}`;
-  selectedPrice.textContent = formatCurrency(basePrice);
-  selectedTotal.textContent = formatCurrency(basePrice);
+function getSelectedTransmission(card) {
+  if (card?.dataset.typePratique !== "RECYCLAGE") return card?.dataset.transmission || "";
+  return (document.querySelector('input[name="recyclage-boite"]:checked')?.value || "automatique").toUpperCase();
 }
-//pour les cards de formation dans la page de choix de formation
-formationCards.forEach((card) => {
-  card.addEventListener("click", () => {
-    formationCards.forEach((item) => item.classList.remove("selected"));
-    card.classList.add("selected");
-    updateSummary(card);
-  });
-});
-//pour les cards de formation dans la page de choix de formation
+
+function getFormationRecord(card) {
+  const transmission = getSelectedTransmission(card);
+  return formationRecords.find((formation) =>
+    formation.typePratique === card.dataset.typePratique && formation.transmission === transmission
+  );
+}
+
+function getFormationLabel(card) {
+  const gearbox = getSelectedTransmission(card) === "MANUELLE" ? "boîte manuelle" : "boîte automatique";
+  return `${card.dataset.formation} - ${gearbox}`;
+}
+
+function updateSelection(card) {
+  formationCards.forEach((item) => item.classList.toggle("selected", item === card));
+  selectedFormationLabel.textContent = getFormationLabel(card);
+}
+
+formationCards.forEach((card) => card.addEventListener("click", () => updateSelection(card)));
 document.querySelectorAll('input[name="recyclage-boite"]').forEach((input) => {
   input.addEventListener("click", (event) => event.stopPropagation());
   input.addEventListener("change", () => {
-    updateSummary(document.querySelector(".plan-card.selected"));
+    const selected = document.querySelector(".plan-card.selected");
+    if (selected) updateSelection(selected);
   });
 });
-//pour les cards de formation dans la page de choix de formation
+
+continueButton.disabled = true;
+const formationsReady = Api.get("/formations").then((formations) => {
+  if (!Array.isArray(formations)) throw new Error("Réponse invalide du serveur des formations.");
+  formationRecords = formations;
+  const requiredCombinations = [
+    ["FORMATION_INITIALE", "MANUELLE"],
+    ["FORMATION_INITIALE", "AUTOMATIQUE"],
+    ["RECYCLAGE", "MANUELLE"],
+    ["RECYCLAGE", "AUTOMATIQUE"]
+  ];
+  const missing = requiredCombinations.find(([type, transmission]) =>
+    !formationRecords.some((formation) => formation.typePratique === type && formation.transmission === transmission)
+  );
+  if (missing) throw new Error(`Formation manquante : ${missing[0]} ${missing[1]}.`);
+  continueButton.disabled = false;
+  return true;
+}).catch((error) => {
+  continueButton.disabled = true;
+  Toast.error(error.message || "Impossible de charger les formations.");
+  return false;
+});
+
 async function handlePayment() {
+  if (!await formationsReady) return;
   const activeCard = document.querySelector(".plan-card.selected");
-  const user = Auth.get() || {};
-
-  user.formation = activeCard ? activeCard.dataset.formation : "Code";
-  user.recyclageBoite = getRecyclageBoite(activeCard);
-  Auth.set(user);
-  sessionStorage.setItem("selectedFormation", user.formation);
-  sessionStorage.setItem("selectedRecyclageBoite", user.recyclageBoite || "");
-  sessionStorage.setItem("selectedFormationPrice", selectedTotal.textContent);
-
-  if (activeCard && Auth.getToken()) {
-    try {
-      const updatedProfile = await Api.patch("/users/me/formation", {
-        formationId: activeCard.dataset.formationId
-      });
-      user.formation = updatedProfile.formation_nom || user.formation;
-      user.recyclageBoite = getRecyclageBoite(activeCard);
-      user.heuresEffectuees = updatedProfile.heures_effectuees ?? user.heuresEffectuees;
-      user.heuresTotales = updatedProfile.heures_totales ?? user.heuresTotales;
-      Auth.set(user);
-    } catch (error) {
-      Toast.error(error.message || "Impossible d'enregistrer la formation.");
-      return;
-    }
+  const selectedFormation = getFormationRecord(activeCard);
+  if (!selectedFormation) {
+    Toast.error("Veuillez choisir une formation valide.");
+    return;
   }
 
-  openWalletModal();
-}
-//pour les cards de formation dans la page de choix de formation
-function openWalletModal() {
-  const activeCard = document.querySelector(".plan-card.selected");
-  const formation = activeCard ? activeCard.dataset.formation : "Formation EduCar";
-  const suffix = getRecyclageBoite(activeCard) ? ` - ${getRecyclageBoiteLabel()}` : "";
-  const amount = selectedTotal.textContent;
-
-  walletModalFrame.src = `wallet.html?embedded=1&formation=${encodeURIComponent(formation + suffix)}&amount=${encodeURIComponent(amount)}`;
+  const label = getFormationLabel(activeCard);
+  sessionStorage.setItem("selectedFormation", label);
+  sessionStorage.setItem("selectedFormationId", String(selectedFormation.id));
+  sessionStorage.setItem("selectedRecyclageBoite", getSelectedTransmission(activeCard).toLowerCase());
+  walletModalFrame.src = `wallet.html?embedded=1&formation=${encodeURIComponent(label)}&amount=90`;
   walletModalOverlay.classList.add("open");
   walletModalOverlay.setAttribute("aria-hidden", "false");
   document.body.classList.add("wallet-modal-open");
 }
-//pour les cards de formation dans la page de choix de formation
+
 function closeWalletModal() {
   walletModalOverlay.classList.remove("open");
   walletModalOverlay.setAttribute("aria-hidden", "true");
   document.body.classList.remove("wallet-modal-open");
-  setTimeout(() => {
-    walletModalFrame.src = "";
-  }, 180);
+  setTimeout(() => { walletModalFrame.src = ""; }, 180);
 }
 
-document.getElementById("formation-logout-link").addEventListener("click", function () {
-  Auth.clear();
+walletModalOverlay.addEventListener("click", (event) => {
+  if (event.target === walletModalOverlay) closeWalletModal();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && walletModalOverlay.classList.contains("open")) closeWalletModal();
+});
+window.addEventListener("message", (event) => {
+  if (event.data?.type === "EduCar-wallet-close") closeWalletModal();
 });
 
-walletModalOverlay.addEventListener("click", function (event) {
-  if (event.target === walletModalOverlay) {
-    closeWalletModal();
-  }
-});
-//pour les cards de formation dans la page de choix de formation
-document.addEventListener("keydown", function (event) {
-  if (event.key === "Escape" && walletModalOverlay.classList.contains("open")) {
-    closeWalletModal();
-  }
-});
-//pour les cards de formation dans la page de choix de formation
-window.addEventListener("message", function (event) {
-  if (event.data && event.data.type === "EduCar-wallet-close") {
-    closeWalletModal();
-  }
-});
-
-updateSummary(document.querySelector(".plan-card.selected"));
+updateSelection(document.querySelector(".plan-card.selected") || formationCards[0]);

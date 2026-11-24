@@ -23,6 +23,12 @@ public class Eleve {
     @Column(nullable = false)
     private int progression = 0;
 
+    @Column(name = "acces_code_actif", nullable = false)
+    private boolean accesCodeActif = true;
+
+    @Column(name = "heures_solde", nullable = false, precision = 6, scale = 1)
+    private BigDecimal heuresSolde = BigDecimal.ZERO;
+
     @Column(name = "heures_effectuees", nullable = false, precision = 5, scale = 1)
     private BigDecimal heuresEffectuees = BigDecimal.ZERO;
 

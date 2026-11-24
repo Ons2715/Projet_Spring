@@ -24,4 +24,7 @@ public class RegisterRequest {
     @NotBlank(message = "Mot de passe obligatoire")
     @Size(min = 8, message = "Minimum 8 caractères")
     public String password;
+
+    public Integer formationId;
+    public String photo;
 }

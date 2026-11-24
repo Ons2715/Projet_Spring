@@ -5,7 +5,7 @@ if (isEmbedded) {
 
 let currentStep = 1;
 let selectedMethod = null;
-let selectedAmount = normalizeAmount(new URLSearchParams(window.location.search).get('amount')) || 250;
+let selectedAmount = normalizeAmount(new URLSearchParams(window.location.search).get('amount')) || 90;
 let selectedFormation = new URLSearchParams(window.location.search).get('formation') || 'Formation EduCar';
 
 const fmt = (n) => Number(n).toLocaleString('fr-TN', { minimumFractionDigits: 0 }) + ' DT';
@@ -71,16 +71,64 @@ function flipCard(flipped) {
   getEl('card-preview').classList.toggle('flipped', flipped);
 }
 
-function handleConfirmPayment() {
+async function finalizeSelectedFormation() {
+  const formationId = Number(sessionStorage.getItem("selectedFormationId"));
+  const formation = sessionStorage.getItem("selectedFormation") || selectedFormation;
+  if (!formationId) throw new Error("La formation choisie est introuvable. Revenez à la sélection.");
+
+  const pending = JSON.parse(sessionStorage.getItem("pendingRegistration") || "null");
+  if (pending) {
+    if (!pending.photo) throw new Error("La photo de profil est manquante. Revenez à l'inscription.");
+    const result = await Api.post("/auth/register", {
+      firstName: pending.firstName,
+      lastName: pending.lastName,
+      email: pending.email,
+      telephone: pending.telephone,
+      adresse: pending.adresse,
+      password: pending.password,
+      formationId,
+      photo: pending.photo
+    });
+    result.user.formation = formation;
+    result.user.formation_nom = formation;
+    result.user.photo = pending.photo;
+    result.user.avatar = pending.photo;
+    Auth.set(result.user);
+    Auth.setToken(result.token);
+    ProfilePhotos.set(result.user.email, pending.photo);
+    sessionStorage.removeItem("pendingRegistration");
+  } else {
+    const user = Auth.get();
+    if (!user || !user.id || !Auth.getToken()) throw new Error("Connectez-vous ou créez un compte avant de continuer.");
+    await Api.put(`/students/${user.id}/formation`, { formationId });
+    user.formation = formation;
+    user.formation_nom = formation;
+    Auth.set(user);
+  }
+}
+
+async function handleConfirmPayment() {
   const btn = getEl('btn-confirm');
+  const error = getEl('payment-error');
+  error.textContent = "";
   btn.classList.add('loading');
   btn.textContent = 'Traitement...';
   btn.disabled = true;
-  setTimeout(() => {
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    await finalizeSelectedFormation();
     getEl('success-amount').textContent = fmt(selectedAmount);
     getEl('success-method').textContent = `${selectedFormation} - ${selectedMethod?.label ?? ''}`;
     goStep(4);
-  }, 1800);
+    window.setTimeout(() => {
+      if (currentStep === 4) goClientSpace();
+    }, 1800);
+  } catch (err) {
+    error.textContent = err.message || "Le paiement ou l'inscription n'a pas pu être finalisé.";
+    btn.classList.remove('loading');
+    btn.textContent = `Réessayer ${fmt(selectedAmount)}`;
+    btn.disabled = false;
+  }
 }
 
 function goClientSpace() {

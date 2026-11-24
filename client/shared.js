@@ -58,7 +58,7 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const API_BASE_URL = "http://localhost:4000/api";
+const API_BASE_URL = "http://localhost:8089/api";
 
 const Api = {
   async request(path, options = {}) {
@@ -92,6 +92,13 @@ const Api = {
   post(path, body) {
     return this.request(path, {
       method: "POST",
+      body: JSON.stringify(body)
+    });
+  },
+
+  put(path, body) {
+    return this.request(path, {
+      method: "PUT",
       body: JSON.stringify(body)
     });
   },

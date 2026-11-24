@@ -9,88 +9,41 @@
   </head>
   <body class="plan-page">
     <main class="plan-shell">
-      <section class="plan-notice" aria-label="Informations inscription">
-        <p class="plan-notice-kicker">Avant de choisir un pack</p>
-        <h1 class="plan-notice-title">Dossier a deposer au bureau EduCar</h1>
-        <p class="plan-notice-text">
-          Pour finaliser l'inscription, le client doit ramener les papiers necessaires au bureau situe au Centre Urbain Nord, Tunis.
-        </p>
+      <section class="plan-notice" aria-label="Conditions d'inscription">
+        <p class="plan-notice-kicker">Inscription EduCar</p>
+        <h1 class="plan-notice-title">Choisissez votre formation</h1>
+        <p class="plan-notice-text">Les tarifs des séances de conduite sont réglés séparément à chaque réservation. Après le paiement initial de 90 DT, votre compte vous donne accès aux cours et aux réservations.</p>
         <ul class="plan-notice-list">
-          <li>Copie de la carte d'identite nationale</li>
-          <li>4 photos d'identite recentes</li>
-          <li>Certificat medical si demande</li>
-          <li>Justificatif de paiement ou acompte</li>
+          <li>Accès aux cours et aux ressources de la formation</li>
+          <li>Réservez vos séances selon vos disponibilités</li>
+          <li>Chaque séance est payée au moment de sa réservation</li>
+          <li>Votre compte est créé après validation du paiement initial</li>
         </ul>
-        <a
-          class="plan-notice-link"
-          href="https://www.google.com/maps/search/?api=1&query=Centre+Urbain+Nord+Tunis"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Voir le bureau sur Google Maps
-        </a>
       </section>
 
       <section class="plan-grid">
-        <article class="plan-card selected" data-formation-id="3" data-formation="Code" data-price="300 DT">
-          <div class="plan-badge">Essentiel</div>
-          <h2>Code</h2>
-          <div class="plan-price">
-            <span class="plan-price-main">300</span>
-            <span class="plan-price-unit">DT</span>
-          </div>
-          <p class="plan-desc">Preparation theorique complete avec un bonus pratique pour demarrer la conduite.</p>
-          <button class="plan-button" type="button">Choisir ce pack</button>
-          <ul class="plan-features">
-            <li>10h de cours de code</li>
-            <li>1h de conduite gratuite</li>
-            <li>Series corrigees et examens blancs</li>
-            <li>Suivi des resultats</li>
-          </ul>
+        <article class="plan-card selected" data-formation="Formation initiale" data-type-pratique="FORMATION_INITIALE" data-transmission="MANUELLE">
+          <div class="plan-badge plan-badge-special">Permis B</div>
+          <h2>Boîte manuelle</h2>
+          <p class="plan-desc">Apprenez à conduire une voiture à boîte manuelle et préparez-vous à l’examen pratique avec un accompagnement progressif.</p>
+          <button class="plan-button" type="button">Choisir cette formation</button>
+          <ul class="plan-features"><li>Démarrage et maîtrise du véhicule</li><li>Circulation et manœuvres</li><li>Suivi de votre progression</li><li>Séances réservées et payées séparément</li></ul>
         </article>
 
-        <article class="plan-card featured" data-formation-id="1" data-formation="Permis B boite manuelle" data-price="1 200 DT">
-          <div class="plan-badge plan-badge-special">Le plus choisi</div>
-          <h2>Permis B boite manuelle</h2>
-          <div class="plan-price">
-            <span class="plan-price-main">1200</span>
-            <span class="plan-price-unit">DT</span>
-          </div>
-          <p class="plan-desc">Formation complete pour maitriser la conduite en boite manuelle avec accompagnement progressif.</p>
-          <button class="plan-button" type="button">Choisir ce pack</button>
-          <ul class="plan-features">
-            <li>20h de conduite incluses</li>
-            <li>Travail de demarrage, circulation et manoeuvres</li>
-            <li>Suivi de progression</li>
-            <li>Preparation a l'examen pratique</li>
-          </ul>
-        </article>
-
-        <article class="plan-card" data-formation-id="2" data-formation="Permis B boite automatique" data-price="1 100 DT">
+        <article class="plan-card" data-formation="Formation initiale" data-type-pratique="FORMATION_INITIALE" data-transmission="AUTOMATIQUE">
           <div class="plan-badge">Confort</div>
           <h2>Permis B boite automatique</h2>
-          <div class="plan-price">
-            <span class="plan-price-main">1100</span>
-            <span class="plan-price-unit">DT</span>
-          </div>
-          <p class="plan-desc">Une formule souple pour apprendre plus sereinement sur boite automatique.</p>
-          <button class="plan-button" type="button">Choisir ce pack</button>
+          <p class="plan-desc">Apprenez à conduire une voiture à boîte automatique, à votre rythme et avec un suivi adapté.</p>
+          <button class="plan-button" type="button">Choisir cette formation</button>
           <ul class="plan-features">
-            <li>20h de conduite incluses</li>
-            <li>Progression pratique pas a pas</li>
-            <li>Bilan de progression regulier</li>
-            <li>Planification flexible</li>
+            <li>Prise en main de la boîte automatique</li><li>Circulation et manœuvres</li><li>Suivi de votre progression</li><li>Séances réservées et payées séparément</li>
           </ul>
         </article>
 
-        <article class="plan-card" data-formation-id="4" data-formation="Recyclage" data-price="250 DT">
+        <article class="plan-card" data-formation="Recyclage" data-type-pratique="RECYCLAGE">
           <div class="plan-badge">Remise a niveau</div>
           <h2>Recyclage</h2>
-          <div class="plan-price">
-            <span class="plan-price-main">250</span>
-            <span class="plan-price-unit">DT</span>
-          </div>
-          <p class="plan-desc">Pour les conducteurs qui veulent reprendre confiance et revoir les bases.</p>
+          <p class="plan-desc">Une remise à niveau personnalisée pour reprendre confiance et retrouver de bons réflexes au volant.</p>
           <div class="recyclage-choice" id="recyclage-choice">
             <label>
               <input type="radio" name="recyclage-boite" value="automatique" checked />
@@ -101,12 +54,9 @@
               Boite manuelle
             </label>
           </div>
-          <button class="plan-button" type="button">Choisir ce pack</button>
+          <button class="plan-button" type="button">Choisir cette formation</button>
           <ul class="plan-features">
-            <li>7h de remise a niveau</li>
-            <li>Reprise des bases essentielles</li>
-            <li>Circulation en ville et stationnement</li>
-            <li>Conseils personnalises</li>
+            <li>Évaluation de vos besoins</li><li>Révision des bases essentielles</li><li>Circulation et stationnement</li><li>Séances réservées et payées séparément</li>
           </ul>
         </article>
       </section>
@@ -117,16 +67,12 @@
             <span>Formation selectionnée :</span>
             <span id="selected-formation-label">Code</span>
           </div>
-          <div class="confirm-summary-row">
-            <span>Prix :</span>
-            <strong id="selected-price">300 TND</strong>
-          </div>
           <div class="confirm-summary-total">
-            <span>Total</span>
-            <strong id="selected-total">300 TND</strong>
+            <span>Frais d'inscription à payer ensuite</span>
+            <strong>90 DT</strong>
           </div>
         </div>
-        <button class="confirm-button" type="button" onclick="handlePayment()">Payer</button>
+        <button class="confirm-button" type="button" onclick="handlePayment()">Continuer vers le paiement</button>
       </section>
     </main>
 

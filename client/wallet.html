@@ -38,6 +38,10 @@
         </div>
 
         <div class="rm-body" id="step-1">
+          <div class="rm-amount-summary">
+            <strong>Frais d'inscription : 90 DT</strong>
+            <p>Ce paiement ouvre l'accès aux cours. Les séances de conduite sont réservées et payées séparément, au moment de chaque réservation.</p>
+          </div>
           <p class="rm-subtitle">Selectionnez votre methode de paiement</p>
           <div class="rm-methods-grid">
             <button class="rm-method-card" style="--method-color:#2a52be" onclick="selectMethod('Carte bancaire','Visa / Mastercard / CIB')">
@@ -113,6 +117,7 @@
               <input type="password" id="card-cvv" placeholder="***" maxlength="3" inputmode="numeric" autocomplete="new-password" onfocus="flipCard(true)" onblur="flipCard(false)" oninput="updateCard()" />
             </div>
           </div>
+          <p class="rm-payment-error" id="payment-error" role="alert"></p>
           <div class="rm-actions">
             <button class="rm-btn-ghost" onclick="goStep(2)">&lt;- Retour</button>
             <button class="rm-btn-primary" id="btn-confirm" onclick="handleConfirmPayment()" disabled>Confirmer</button>
@@ -123,14 +128,15 @@
           <div class="rm-success">
             <div class="rm-success-circle"><div class="rm-success-check">OK</div></div>
             <h3>Paiement termine avec succes</h3>
-            <p>Votre paiement de <strong id="success-amount"></strong> a ete valide.</p>
+            <p>Votre paiement de <strong id="success-amount"></strong> a ete valide. Vous accedez a votre espace eleve.</p>
             <div class="rm-success-method" id="success-method"></div>
-            <button class="rm-btn-primary rm-btn-full" onclick="goClientSpace()">Aller vers l'espace client</button>
+            <button class="rm-btn-primary rm-btn-full" onclick="goClientSpace()">Acceder a l'espace eleve</button>
           </div>
         </div>
       </div>
     </div>
 
+    <script src="shared.js"></script>
     <script src="wallet.js"></script>
   </body>
 </html>

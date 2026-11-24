@@ -37,6 +37,9 @@ public class Utilisateur {
     @Column(nullable = false)
     private Role role;
 
+    @Column(name = "actif", nullable = false)
+    private boolean actif = true;
+
     @CreationTimestamp
     @Column(name = "date_creation", updatable = false)
     private LocalDateTime dateCreation;
