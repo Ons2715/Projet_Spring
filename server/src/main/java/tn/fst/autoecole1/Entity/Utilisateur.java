@@ -30,7 +30,7 @@ public class Utilisateur {
     private String adresse = "";
 
     @Lob
-    @Column(name = "photo_profil")
+    @Column(name = "photo_profil", columnDefinition = "LONGTEXT")
     private String photoProfil;         // LONGTEXT (base64)
 
     @Enumerated(EnumType.STRING)

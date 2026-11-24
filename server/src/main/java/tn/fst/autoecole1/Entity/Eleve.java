@@ -16,9 +16,8 @@ public class Eleve {
     @MapsId                             // l'id de l'élève est copié depuis l'utilisateur
     @JoinColumn(name = "id")
     private Utilisateur utilisateur;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_formation")
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "id_formation", nullable = true)
     private Formation formation;
 
     @Column(nullable = false)
