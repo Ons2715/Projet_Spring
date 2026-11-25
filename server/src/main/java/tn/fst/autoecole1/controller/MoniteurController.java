@@ -1,45 +1,39 @@
-
-
 package tn.fst.autoecole1.controller;
 
-import tn.fst.autoecole1.Entity.Moniteur;
-import tn.fst.autoecole1.Entity.Reservation;
-import tn.fst.autoecole1.Entity.Utilisateur;
 import tn.fst.autoecole1.Entity.Eleve;
-
+import tn.fst.autoecole1.Entity.Formation;
+import tn.fst.autoecole1.Entity.Moniteur;
+import tn.fst.autoecole1.Entity.Utilisateur;
 import tn.fst.autoecole1.repository.EleveRepository;
 import tn.fst.autoecole1.repository.MoniteurRepository;
-import tn.fst.autoecole1.repository.ReservationRepository;
 import tn.fst.autoecole1.service.AuthSessionService;
-
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/monitors")
 @CrossOrigin(origins = "*")
 public class MoniteurController extends BaseCrudController<Moniteur> {
-
     private final AuthSessionService authSessionService;
-    private final ReservationRepository reservationRepository;
     private final EleveRepository eleveRepository;
     private final MoniteurRepository moniteurRepository;
 
     public MoniteurController(
             AuthSessionService authSessionService,
-            ReservationRepository reservationRepository,
             EleveRepository eleveRepository,
             MoniteurRepository moniteurRepository) {
-
         super(Moniteur.class);
         this.authSessionService = authSessionService;
-        this.reservationRepository = reservationRepository;
         this.eleveRepository = eleveRepository;
         this.moniteurRepository = moniteurRepository;
     }
@@ -47,64 +41,34 @@ public class MoniteurController extends BaseCrudController<Moniteur> {
     @GetMapping("/me/assigned")
     @Transactional(readOnly = true)
     public ResponseEntity<?> getAssignedMonitor(
-            @RequestHeader(value = "Authorization", required = false)
-            String authorization) {
-
-        if (authorization == null ||
-                !authorization.startsWith("Bearer ")) {
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Token manquant ou invalide"));
         }
 
-        String token = authorization.substring(7).trim();
-
-        Integer userId = authSessionService.getUserId(token);
-
+        Integer userId = authSessionService.getUserId(authorization.substring(7).trim());
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Session expirée ou invalide"));
+                    .body(Map.of("message", "Session expiree ou invalide"));
         }
 
-        // Récupérer les réservations de l'élève connecté
-        List<Reservation> reservations =
-                reservationRepository.findByEleveIdOrderByDateReservation(userId);
-
-        // Chercher une réservation avec un moniteur
-        Reservation assignedReservation = reservations.stream()
-                .filter(r -> r.getStatut() != null)
-                .filter(r -> !r.getStatut().name()
-                        .equalsIgnoreCase("ANNULEE"))
-                .filter(r -> r.getMoniteur() != null)
-                .findFirst()
-                .orElse(null);
-
-        if (assignedReservation != null) {
-            Moniteur moniteur = assignedReservation.getMoniteur();
-
-            if (moniteur.getUtilisateur() != null) {
-                return monitorResponse(moniteur, true);
-            }
+        Eleve eleve = eleveRepository.findByIdWithFormation(userId).orElse(null);
+        Formation formation = eleve == null ? null : eleve.getFormation();
+        if (formation == null) {
+            return ResponseEntity.ok(noMonitorResponse(""));
         }
 
-        // Si aucune réservation n'a de moniteur,
-        // chercher le moniteur de la formation de l'élève
-        Eleve eleve = eleveRepository.findById(userId).orElse(null);
-
-        if (eleve != null && eleve.getFormation() != null) {
-            List<Moniteur> monitors =
-                    moniteurRepository.findByFormationId(
-                            eleve.getFormation().getId());
-
-            Moniteur formationMonitor = monitors.stream()
-                    .filter(m -> m.getUtilisateur() != null)
-                    .findFirst()
-                    .orElse(null);
-
-            if (formationMonitor != null) {
-                return monitorResponse(formationMonitor, false);
-            }
+        List<Moniteur> monitors = moniteurRepository
+                .findWithUserByFormationId(formation.getId());
+        Moniteur formationMonitor = monitors.isEmpty() ? null : monitors.get(0);
+        if (formationMonitor == null) {
+            return ResponseEntity.ok(noMonitorResponse(formation.getNom()));
         }
+        return monitorResponse(formationMonitor, formation);
+    }
 
+    private Map<String, Object> noMonitorResponse(String formationName) {
         Map<String, Object> result = new HashMap<>();
         result.put("assigned", false);
         result.put("nom", "");
@@ -114,31 +78,24 @@ public class MoniteurController extends BaseCrudController<Moniteur> {
         result.put("phone", "");
         result.put("email", "");
         result.put("photo", "");
-        result.put("message", "Aucun moniteur affecté à cet élève");
-
-        return ResponseEntity.ok(result);
+        result.put("formation_nom", formationName);
+        result.put("message", formationName.isBlank()
+                ? "Aucune formation choisie par cet eleve"
+                : "Aucun moniteur disponible pour cette formation");
+        return result;
     }
 
     private ResponseEntity<Map<String, Object>> monitorResponse(
-            Moniteur moniteur,
-            boolean assigned) {
-
+            Moniteur moniteur, Formation formation) {
         Utilisateur utilisateur = moniteur.getUtilisateur();
-
         if (utilisateur == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of(
-                            "message", "Profil utilisateur du moniteur introuvable"
-                    ));
+                    .body(Map.of("message", "Profil utilisateur du moniteur introuvable"));
         }
 
         Map<String, Object> result = new HashMap<>();
-
-        String nom = utilisateur.getNom() == null
-                ? ""
-                : utilisateur.getNom().trim();
-
-        result.put("assigned", assigned);
+        String nom = utilisateur.getNom() == null ? "" : utilisateur.getNom().trim();
+        result.put("assigned", true);
         result.put("id", moniteur.getId());
         result.put("nom", nom);
         result.put("firstName", "");
@@ -147,7 +104,8 @@ public class MoniteurController extends BaseCrudController<Moniteur> {
         result.put("phone", utilisateur.getTelephone());
         result.put("email", utilisateur.getEmail());
         result.put("photo", utilisateur.getPhotoProfil());
-
+        result.put("formation_nom", formation.getNom());
+        result.put("formation_id", formation.getId());
         return ResponseEntity.ok(result);
     }
 }

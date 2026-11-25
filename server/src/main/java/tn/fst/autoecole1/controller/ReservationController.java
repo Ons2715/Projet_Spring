@@ -9,8 +9,11 @@ import tn.fst.autoecole1.repository.EleveRepository;
 import tn.fst.autoecole1.repository.MoniteurRepository;
 import tn.fst.autoecole1.repository.ReservationRepository;
 import tn.fst.autoecole1.service.AuthSessionService;
+import tn.fst.autoecole1.service.VoucherPdfService;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -27,21 +30,25 @@ import java.util.Map;
 @RequestMapping("/api/bookings")
 @CrossOrigin(origins = "*")
 public class ReservationController {
+    private static final String ASSIGNED_MONITOR_EMAIL = "nadiamansouri@autoecole.tn";
 
     private final ReservationRepository reservationRepository;
     private final EleveRepository eleveRepository;
     private final MoniteurRepository moniteurRepository;
     private final AuthSessionService authSessionService;
+    private final VoucherPdfService voucherPdfService;
 
     public ReservationController(
             ReservationRepository reservationRepository,
             EleveRepository eleveRepository,
             MoniteurRepository moniteurRepository,
-            AuthSessionService authSessionService) {
+            AuthSessionService authSessionService,
+            VoucherPdfService voucherPdfService) {
         this.reservationRepository = reservationRepository;
         this.eleveRepository = eleveRepository;
         this.moniteurRepository = moniteurRepository;
         this.authSessionService = authSessionService;
+        this.voucherPdfService = voucherPdfService;
     }
 
     @GetMapping
@@ -151,6 +158,32 @@ public class ReservationController {
         return ResponseEntity.ok(toResponse(reservation));
     }
 
+    @GetMapping(value = "/{id}/voucher", produces = MediaType.APPLICATION_PDF_VALUE)
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> downloadVoucher(
+            @PathVariable Integer id,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        Integer userId = getUserId(authorization);
+        if (userId == null) {
+            return unauthorized();
+        }
+        Reservation reservation = reservationRepository.findById(id).orElse(null);
+        if (reservation == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (!reservation.getEleve().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Vous ne pouvez pas telecharger ce voucher."));
+        }
+
+        byte[] pdf = voucherPdfService.generate(reservation);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"voucher-EDUCAR-" + id + ".pdf\"")
+                .body(pdf);
+    }
+
     @PutMapping("/{id}")
     @Transactional
     public ResponseEntity<?> updateBooking(
@@ -257,16 +290,20 @@ public class ReservationController {
             LocalDateTime requestedStart,
             LocalDateTime requestedEnd,
             Integer ignoredReservationId) {
-        return moniteurRepository.findByFormationId(eleve.getFormation().getId())
-                .stream()
-                .filter(monitor -> !hasOverlap(
-                        reservationRepository.findByMoniteurIdOrderByDateReservation(
-                                monitor.getId()),
-                        requestedStart,
-                        requestedEnd,
-                        ignoredReservationId))
-                .findFirst()
+        Moniteur monitor = moniteurRepository
+                .findByUtilisateurEmailIgnoreCase(ASSIGNED_MONITOR_EMAIL)
                 .orElse(null);
+        if (monitor == null || monitor.getFormation() == null
+                || !monitor.getFormation().getId().equals(eleve.getFormation().getId())) {
+            return null;
+        }
+
+        boolean unavailable = hasOverlap(
+                reservationRepository.findByMoniteurIdOrderByDateReservation(monitor.getId()),
+                requestedStart,
+                requestedEnd,
+                ignoredReservationId);
+        return unavailable ? null : monitor;
     }
 
     private boolean hasOverlap(

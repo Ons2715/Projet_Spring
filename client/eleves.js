@@ -1,5 +1,3 @@
-const BOOKINGS_KEY = "EduCar_client_bookings";
-
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -14,36 +12,6 @@ function formatDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleDateString("fr-FR");
-}
-
-function getStoredBookings() {
-  try {
-    return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function getFallbackStudentsFromBookings() {
-  const map = new Map();
-
-  getStoredBookings().forEach((booking) => {
-    const key = `${booking.studentId || ""}|${booking.studentEmail || ""}|${booking.studentPhone || ""}`;
-    if (!map.has(key)) {
-      map.set(key, {
-        id: booking.studentId || key,
-        nom: `${booking.studentFirstName || "Candidat"} ${booking.studentLastName || ""}`.trim(),
-        email: booking.studentEmail || "",
-        telephone: booking.studentPhone || "",
-        formation_nom: booking.studentFormation || booking.formation || "Formation non renseignee",
-        heures_effectuees: null,
-        heures_totales: null,
-        date_inscription: booking.date
-      });
-    }
-  });
-
-  return Array.from(map.values()).sort((a, b) => String(a.nom).localeCompare(String(b.nom)));
 }
 
 function normalizeStudent(student) {
@@ -139,8 +107,7 @@ async function loadMonitorStudents() {
     const students = await Api.get("/students/monitor/me");
     renderStudents(students);
   } catch (error) {
-    const fallbackStudents = getFallbackStudentsFromBookings();
-    renderStudents(fallbackStudents);
+    renderStudents([]);
     Toast.error(error.message || "Impossible de charger les candidats depuis le serveur.");
   }
 }
@@ -150,13 +117,3 @@ document.getElementById("students-logout-link").addEventListener("click", functi
 });
 
 loadMonitorStudents();
-
-let storageRefreshTimer = null;
-window.addEventListener("storage", function (event) {
-  if (event.key !== BOOKINGS_KEY) return;
-  if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
-  storageRefreshTimer = setTimeout(() => {
-    storageRefreshTimer = null;
-    loadMonitorStudents();
-  }, 50);
-});

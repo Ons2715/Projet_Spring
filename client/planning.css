@@ -432,6 +432,25 @@
   flex-wrap: wrap;
 }
 
+.planning-voucher-ready {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid #b7e3cc;
+  border-radius: 14px;
+  background: #effaf3;
+  color: #17663b;
+  font-weight: 600;
+}
+
+.planning-voucher-ready[hidden] {
+  display: none;
+}
+
 .planning-upcoming-actions {
   display: flex;
   flex-direction: column;

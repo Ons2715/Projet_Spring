@@ -42,7 +42,7 @@
       <div>
         <p class="client-kicker">Reservation</p>
         <h1 class="h2">Réserver une seance</h1>
-        <p class="text-muted">Choisissez une date, un point de rencontre et retrouvez aussi quelques Leçons utiles avant votre seance.</p>
+        <p class="text-muted">Choisissez votre créneau, confirmez la réservation et téléchargez votre voucher.</p>
       </div>
     </header>
 
@@ -52,7 +52,7 @@
           <div class="planning-calendar-head">
             <div>
               <p class="client-kicker">Calendrier</p>
-              <h2 class="h3">Disponibilites du moniteur</h2>
+              <h2 class="h3">Choisissez une date</h2>
             </div>
             <div class="planning-month-nav">
               <button class="planning-icon-btn" type="button" id="prev-month-btn" aria-label="Mois precedent">&lsaquo;</button>
@@ -79,7 +79,7 @@
 
             <div class="planning-monitor-profile">
               <div class="planning-monitor-photo">
-                <span id="monitor-photo-fallback">MD</span>
+                <span id="monitor-photo-fallback">?</span>
               </div>
 
               <div class="planning-monitor-fields">
@@ -87,7 +87,10 @@
                   <label class="form-label" for="monitor-fullname">Nom complet</label>
                   <input class="form-input" id="monitor-fullname" type="text" readonly />
                 </div>
-
+                <div class="form-group">
+                  <label class="form-label" for="student-formation">Formation choisie</label>
+                  <input class="form-input" id="student-formation" type="text" readonly />
+                </div>
                 <div class="form-group">
                   <label class="form-label" for="monitor-phone">Téléphone</label>
                   <input class="form-input" id="monitor-phone" type="text" readonly />
@@ -145,6 +148,13 @@
               <button class="btn btn-ghost btn-lg" type="button" id="reset-btn">Reinitialiser</button>
             </div>
 
+            <div class="planning-voucher-ready" id="voucher-ready" role="status" hidden>
+              <span>Reservation confirmee. Votre voucher PDF est pret.</span>
+              <button class="btn btn-primary btn-sm" type="button" id="download-confirmed-voucher-btn">
+                Telecharger le voucher PDF
+              </button>
+            </div>
+
             <div class="planning-cancel-note">
               <strong>Important</strong>
               <p>Vous ne pouvez annuler une seance deja reservée que 48 heures avant l'horaire prevu.</p>
@@ -152,21 +162,6 @@
           </div>
         </section>
 
-        <section class="card planning-upcoming-card">
-          <div class="card-body">
-            <div class="planning-upcoming-head">
-              <div>
-                <p class="client-kicker">Mes reservations</p>
-                <h2 class="h3">Seances a venir</h2>
-              </div>
-              <span class="badge badge-accent" id="booking-count-badge">0 reservation</span>
-            </div>
-
-            <div class="planning-upcoming-list" id="upcoming-bookings"></div>
-          </div>
-        </section>
-
-        
       </div>
     </section>
   </main>

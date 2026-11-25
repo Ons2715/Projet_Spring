@@ -5,10 +5,17 @@ import tn.fst.autoecole1.Entity.Eleve;
 import tn.fst.autoecole1.Entity.Formation;
 import tn.fst.autoecole1.repository.EleveRepository;
 import tn.fst.autoecole1.repository.FormationRepository;
+import tn.fst.autoecole1.repository.MoniteurRepository;
+import tn.fst.autoecole1.service.AuthSessionService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -18,14 +25,57 @@ public class EleveController extends BaseCrudController<Eleve> {
 
     private final EleveRepository eleveRepository;
     private final FormationRepository formationRepository;
+    private final MoniteurRepository moniteurRepository;
+    private final AuthSessionService authSessionService;
 
     public EleveController(
             EleveRepository eleveRepository,
-            FormationRepository formationRepository) {
+            FormationRepository formationRepository,
+            MoniteurRepository moniteurRepository,
+            AuthSessionService authSessionService) {
 
         super(Eleve.class);
         this.eleveRepository = eleveRepository;
         this.formationRepository = formationRepository;
+        this.moniteurRepository = moniteurRepository;
+        this.authSessionService = authSessionService;
+    }
+
+    @GetMapping("/monitor/me")
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getMyCandidates(
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Session invalide. Veuillez vous reconnecter."));
+        }
+
+        Integer moniteurId = authSessionService.getUserId(authorization.substring(7).trim());
+        if (moniteurId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Session invalide. Veuillez vous reconnecter."));
+        }
+        if (!moniteurRepository.existsById(moniteurId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Cette page est reservee aux moniteurs."));
+        }
+
+        List<Map<String, Object>> candidates = new ArrayList<>();
+        for (EleveRepository.MonitorStudentView student
+                : eleveRepository.findStudentsByMonitorId(moniteurId)) {
+            Map<String, Object> candidate = new HashMap<>();
+            candidate.put("id", student.getId());
+            candidate.put("nom", student.getNom());
+            candidate.put("email", student.getEmail());
+            candidate.put("telephone", student.getTelephone());
+            candidate.put("photo", student.getPhoto());
+            candidate.put("formation_nom", student.getFormationNom());
+            candidate.put("heures_effectuees", student.getHeuresEffectuees());
+            candidate.put("heures_totales", student.getHeuresTotales());
+            candidate.put("date_inscription", student.getDateInscription());
+            candidates.add(candidate);
+        }
+        return ResponseEntity.ok(candidates);
     }
 
     // DTO pour choisir une formation

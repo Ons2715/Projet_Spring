@@ -1,5 +1,4 @@
 const BOOKINGS_KEY = "EduCar_client_bookings";
-const MONITOR_PROFILE_KEY = "EduCar_monitor_profile";
 const WEEK_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const SESSION_TYPES = [
   {
@@ -17,13 +16,6 @@ const SESSION_TYPES = [
     mapsUrl: "https://www.google.com/maps/search/?api=1&query=Centre+Urbain+Nord+Tunis"
   }
 ];
-const DEFAULT_MONITOR_PROFILE = {
-  firstName: "Mourad",
-  lastName: "Ben Salah",
-  phone: "+216 20 000 000",
-  email: "",
-  formation: "Permis B"
-};
 const PLANNING_LeçonS = [
   {
     id: "Leçon1",
@@ -87,6 +79,7 @@ function saveStoredBookings(bookings) {
 }
 
 let upcomingBookingsCache = [];
+let confirmedVoucherReservationId = null;
 
 function hasApiSession() {
   const user = Auth.get();
@@ -134,25 +127,9 @@ async function getUpcomingBookings() {
     : [];
 }
 //pour les cards de formation dans la page de choix de formation
-function getMonitorProfile() {
-  try {
-    const storedProfile = JSON.parse(localStorage.getItem(MONITOR_PROFILE_KEY) || "null");
-    if (storedProfile && typeof storedProfile === "object") {
-      return {
-        firstName: storedProfile.firstName || DEFAULT_MONITOR_PROFILE.firstName,
-        lastName: storedProfile.lastName || DEFAULT_MONITOR_PROFILE.lastName,
-        phone: storedProfile.phone || DEFAULT_MONITOR_PROFILE.phone,
-        photo: storedProfile.photo || ""
-      };
-    }
-  } catch {}
-
-  return DEFAULT_MONITOR_PROFILE;
-}
-//pour les cards de formation dans la page de choix de formation
 function getInitials(firstName, lastName) {
   const initials = `${(firstName || "").charAt(0)}${(lastName || "").charAt(0)}`.toUpperCase();
-  return initials || "MD";
+  return initials || "?";
 }
 //pour les cards de formation dans la page de choix de formation
 function splitName(name = "") {
@@ -163,27 +140,31 @@ function splitName(name = "") {
   };
 }
 //pour les cards de formation dans la page de choix de formation
-function renderMonitorProfile(monitorProfile = getMonitorProfile()) {
-  const fullName = monitorProfile.nom || `${monitorProfile.firstName || ""} ${monitorProfile.lastName || ""}`.trim();
+function renderMonitorProfile(monitorProfile = {}) {
+  const fullName = monitorProfile.assigned === false
+    ? "Aucun moniteur disponible pour votre formation"
+    : monitorProfile.nom || `${monitorProfile.firstName || ""} ${monitorProfile.lastName || ""}`.trim();
   const nameParts = splitName(fullName);
   const firstName = monitorProfile.firstName || nameParts.firstName;
   const lastName = monitorProfile.lastName || nameParts.lastName;
 
   document.getElementById("monitor-fullname").value = fullName || "Moniteur non affecte";
   document.getElementById("monitor-phone").value = monitorProfile.telephone || monitorProfile.phone || "";
+  document.getElementById("student-formation").value = monitorProfile.formation_nom
+    || (planningUser && Auth.getToken() ? "Aucune formation choisie" : "Session candidat requise");
 
   const photoBox = document.querySelector(".planning-monitor-photo");
   const photo = ProfilePhotos.get(monitorProfile.email) || monitorProfile.photo || "";
   if (photo) {
     photoBox.innerHTML = `<img src="${photo}" alt="Photo du moniteur" />`;
   } else {
-    photoBox.innerHTML = `<span id="monitor-photo-fallback">${getInitials(firstName, lastName)}</span>`;
+    photoBox.innerHTML = `<span id="monitor-photo-fallback">${monitorProfile.assigned === false ? "?" : getInitials(firstName, lastName)}</span>`;
   }
 }
 //pour les cards de formation dans la page de choix de formation
 async function loadAssignedMonitor() {
   if (!planningUser || !planningUser.id || !Auth.getToken()) {
-    renderMonitorProfile();
+    renderMonitorProfile({ assigned: false, formation_nom: "Session candidat requise" });
     return;
   }
 
@@ -191,7 +172,7 @@ async function loadAssignedMonitor() {
     const monitor = await Api.get("/monitors/me/assigned");
     renderMonitorProfile(monitor);
   } catch (error) {
-    renderMonitorProfile();
+    renderMonitorProfile({ assigned: false });
     Toast.error(error.message || "Impossible de charger les coordonnees du moniteur.");
   }
 }
@@ -375,8 +356,11 @@ async function renderUpcomingBookings() {
     .sort((a, b) => new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`));
   upcomingBookingsCache = bookings;
   const container = document.getElementById("upcoming-bookings");
+  if (!container) return;
   const badge = document.getElementById("booking-count-badge");
-  badge.textContent = `${bookings.length} reservation${bookings.length > 1 ? "s" : ""}`;
+  if (badge) {
+    badge.textContent = `${bookings.length} reservation${bookings.length > 1 ? "s" : ""}`;
+  }
 
   if (!bookings.length) {
     container.innerHTML = `<div class="planning-empty">Aucune reservation pour le moment. Choisissez une date et un horaire.</div>`;
@@ -399,10 +383,36 @@ async function renderUpcomingBookings() {
           <div class="planning-upcoming-meta"><a class="planning-place-link" href="${booking.mapsUrl}" target="_blank" rel="noopener noreferrer">${booking.place}</a></div>
           <div class="planning-upcoming-meta">${booking.note || "Sans note particuliere"}</div>
         </div>
-        ${canCancel ? "" : `<div class="planning-upcoming-actions"><span class="badge badge-success">Seance faite</span></div>`}
+        <div class="planning-upcoming-actions">
+          ${hasApiSession() && booking.serverId ? `<button class="btn btn-outline btn-sm" type="button" onclick="downloadVoucher(${Number(booking.serverId)})">Telecharger le voucher PDF</button>` : ""}
+          ${canCancel ? "" : `<span class="badge badge-success">Seance faite</span>`}
+        </div>
       </article>
     `;
   }).join("");
+}
+
+async function downloadVoucher(reservationId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bookings/${encodeURIComponent(reservationId)}/voucher`, {
+      headers: { Authorization: `Bearer ${Auth.getToken()}` }
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || "Impossible de telecharger le voucher.");
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `voucher-EDUCAR-${reservationId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    Toast.error(error.message || "Impossible de telecharger le voucher.");
+  }
 }
 //pour les cards de formation dans la page de choix de formation
 function selectDate(dateKey) {
@@ -471,8 +481,9 @@ async function confirmBooking() {
       return;
     }
 
+    let savedBooking;
     try {
-      await Api.post("/bookings", {
+      savedBooking = await Api.post("/bookings", {
         date: selectedDateKey,
         time: selectedSlot,
         typeId: selectedType.id,
@@ -489,6 +500,8 @@ async function confirmBooking() {
     await loadServerBookings();
     await renderUpcomingBookings();
     renderSlots();
+    confirmedVoucherReservationId = savedBooking?.id || null;
+    document.getElementById("voucher-ready").hidden = !confirmedVoucherReservationId;
     Toast.success(`Reservation confirmee pour le ${new Date(`${selectedDateKey}T12:00:00`).toLocaleDateString("fr-FR")} a ${selectedSlot}.`);
     resetBookingSelection();
     return;
@@ -672,6 +685,11 @@ document.getElementById("next-month-btn").addEventListener("click", function () 
 });
 
 document.getElementById("book-btn").addEventListener("click", confirmBooking);
+document.getElementById("download-confirmed-voucher-btn").addEventListener("click", function () {
+  if (confirmedVoucherReservationId) {
+    downloadVoucher(confirmedVoucherReservationId);
+  }
+});
 document.getElementById("reset-btn").addEventListener("click", resetBookingSelection);
 document.getElementById("reclamation-form").addEventListener("submit", submitReclamation);
 document.getElementById("close-reclamation-modal").addEventListener("click", closeReclamationModal);

@@ -6,6 +6,7 @@ import tn.fst.autoecole1.Entity.Enum.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity @Table(name = "utilisateurs")
@@ -45,6 +46,7 @@ public class Utilisateur {
     private LocalDateTime dateCreation;
 
     // Géré par MySQL (ON UPDATE CURRENT_TIMESTAMP) : JPA ne doit pas l'écrire
-    @Column(name = "date_modification", insertable = false, updatable = false)
+    @UpdateTimestamp
+    @Column(name = "date_modification")
     private LocalDateTime dateModification;
 }

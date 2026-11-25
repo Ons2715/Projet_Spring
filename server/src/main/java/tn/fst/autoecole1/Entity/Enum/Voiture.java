@@ -5,7 +5,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Voiture {
     KIA_PICANTO("Kia Picanto"),
-    RENAULT_CLIO("Renault Clio");
+    RENAULT_CLIO("Renault Clio"),
+    VOLKSWAGEN_POLO("Volkswagen Polo"),
+    RENAULT_CLIO_4("Renault Clio 4"),
+    PEUGEOT_208("Peugeot 208");
 
     private final String libelle;
 
@@ -16,7 +19,13 @@ public enum Voiture {
 
     @JsonCreator
     public static Voiture fromLibelle(String s) {
-        for (Voiture v : values()) if (v.libelle.equalsIgnoreCase(s)) return v;
+        if (s == null) return null;
+        String value = s.trim();
+        for (Voiture v : values()) {
+            if (v.libelle.equalsIgnoreCase(value) || v.name().equalsIgnoreCase(value)) {
+                return v;
+            }
+        }
         throw new IllegalArgumentException("Voiture inconnue : " + s);
     }
 }
